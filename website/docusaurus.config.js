@@ -2,12 +2,12 @@ module.exports = {
     title: 'ZIO Insight',
     tagline: 'Developer toolset for ZIO 2',
     url: 'https://zio.github.io',
-    baseUrl: '/zio-insight/',
+    baseUrl: '/insight/',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
     favicon: 'img/favicon.png',
     organizationName: 'zio',
-    projectName: 'zio-insight',
+    projectName: 'insight',
     themeConfig: {
         prism: {
             // In case we want to use one of the json packaged themes, we can simply require those
@@ -28,7 +28,7 @@ module.exports = {
             },
             items: [
                 {to: 'overview/', label: 'Overview', position: 'right'},
-                {to: 'usecases/', label: 'Data Types', position: 'right'},
+                {to: 'usecases/', label: 'Use Cases', position: 'right'},
                 {to: 'about/', label: 'About', position: 'right'}
             ],
         },
@@ -50,7 +50,7 @@ module.exports = {
                         {
                             html: `
               <a href="https://github.com/zio/zio-insight">
-                <img src="https://img.shields.io/github/stars/zio/zio?style=social" alt="github" />
+                <img src="https://img.shields.io/github/stars/zio/insight?style=social" alt="github" />
               </a>
             `
                         }
