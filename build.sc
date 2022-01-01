@@ -21,23 +21,30 @@ import os.Path
 // It's convenient to keep the base project directory around
 val projectDir = build.millSourcePath
 
-object Deps {
-  val scalaVersion = "2.13.7"
+trait Deps {
+  def scalaVersion : String
 
-  val silencerVersion = "1.7.7"
   val zioVersion = "2.0.0-RC1"
-
-  val silencer = ivy"com.github.ghik:::silencer-lib:$silencerVersion"
-  val silencerPlugin = ivy"com.github.ghik:::silencer-lib:$silencerVersion"
 
   val zio = ivy"dev.zio::zio:$zioVersion"
   val zioTest = ivy"dev.zio::zio-test:$zioVersion"
   val zioTestSbt = ivy"dev.zio::zio-test-sbt:$zioVersion"
 }
 
+object Deps_213 extends Deps { 
+  override def scalaVersion = "2.13.7"
+}
+
+object Deps_31 extends Deps { 
+  override def scalaVersion = "3.1.0"
+}
+
 trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { outer =>
-  def scalaVersion = T(Deps.scalaVersion)
+  def deps : Deps
   def scalafixScalaBinaryVersion = T("2.13")
+
+  private val silencerVersion = "1.7.7"
+  private lazy val silencerLib = s"com.github.ghik:::silencer-lib:$silencerVersion"
 
   override def scalacOptions = T(Seq(
     "-deprecation",
@@ -55,9 +62,26 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
     "-Wvalue-discard"
   ))
 
-  override def scalacPluginIvyDeps = T {
-    super.scalacPluginIvyDeps() ++
-      Agg(Deps.silencerPlugin)
+  override def scalacPluginIvyDeps = { 
+    T {
+      val plugins : Agg[Dep] = if (scalaVersion().equals("2.13.7")) { 
+        Agg(ivy"$silencerLib")
+      } else { 
+        Agg.empty[Dep]
+      }
+      super.scalacPluginIvyDeps() ++ plugins
+    }
+  }
+
+  override def ivyDeps = {
+    T {
+      val libs : Agg[Dep] = if (scalaVersion().equals("2.13.7")) { 
+        Agg(ivy"$silencerLib")
+      } else { 
+        Agg.empty[Dep]
+      }
+      super.ivyDeps() ++ libs
+    }
   }
 
   trait Tests extends super.Tests with ScalafmtModule with ScalafixModule  {
@@ -66,15 +90,16 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
 
     override def testFramework: T[String] = T("zio.test.sbt.ZTestFramework")
 
-    override def ivyDeps = Agg(Deps.zioTest, Deps.zioTestSbt)
+    override def ivyDeps = Agg(deps.zioTest, deps.zioTestSbt)
   }
 
 }
 
-object zio extends Module {
+object zio extends Cross[ZIOProject]("3.1.0")
+class ZIOProject(crossScalaVersion: String) extends Module {
 
   object site extends Docusaurus2Module with MDocModule {
-    override def scalaVersion = T(Deps.scalaVersion)
+    override def scalaVersion = T(crossScalaVersion)
     override def mdocSources = T.sources{ projectDir / "docs" }
     override def docusaurusSources = T.sources(
       projectDir / "website",
@@ -87,8 +112,14 @@ object zio extends Module {
 
   object insight extends Module { 
     object core extends ZIOModule {
+      override def deps = crossScalaVersion match { 
+        case "2.13.7" => Deps_213
+        case _ => Deps_31
+      }
 
-      override def ivyDeps = T { Agg(Deps.zio, Deps.silencer)}
+      override def scalaVersion = T{crossScalaVersion}
+
+      override def ivyDeps = T { super.ivyDeps() ++ Agg(deps.zio) }
 
       override def millSourcePath = projectDir / "zio-profiling" / "jvm"
       override def artifactName: T[String] = T{"zio-profiling"}
