@@ -179,7 +179,7 @@ object zio extends Module {
     override def compiledMdocs: Sources = T.sources(mdoc().path)
   }
 
-  object insight extends Cross[ZIOInsight](PrjScalaVersion.all.map(_.version):_*)
+  object insight extends Cross[ZIOInsight](PrjScalaVersion.default.version)
   class ZIOInsight(crossScalaVersion : String) extends Module {
     val prjScalaVersion = PrjScalaVersion(crossScalaVersion)
 
