@@ -43,7 +43,7 @@ For this project we are exploring [mill](https://com-lihaoyi.github.io/mill/mill
 
 A mill build file is included in the project, so if you choose to build the project this way, you won't have to do any additional configuration or setup (others choose to build the project using IntelliJ IDEA, Gradle, Maven, SBT, or Fury).
 
-We use a mill wrapper script (millw)[https://github.com/lefou/millw] to download the required version of mill upon the first build. We recommend to use that script rather than a locally installed version of mill. This will ensure that the build is using the correct mill version. 
+We use a mill wrapper script [millw](https://github.com/lefou/millw) to download the required version of mill upon the first build. We recommend to use that script rather than a locally installed version of mill. This will ensure that the build is using the correct mill version. 
 
 The `millw` script is in the root of the repository. To launch this script and see all currently defined mill targets, 
 simply type:
