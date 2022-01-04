@@ -26,7 +26,7 @@ class StaticFileHandler(context: String, baseDir: String):
       for
         dir    <- ZIO.succeed(baseDir)
         relPath = req.uri.getPath.substring(context.length)
-        relFile = if (relPath.endsWith("/")) relPath + "/index" else relPath
+        relFile = if (relPath.endsWith("/")) relPath + "index" else if relPath.isEmpty then "index" else relPath
         file   <- ZIO.collectFirst(candidates(baseDir, relFile))(probe)
         resp   <- createResponse(req, file)
       yield resp

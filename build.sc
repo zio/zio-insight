@@ -8,7 +8,7 @@ import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.mdoc::0.0.1-4
 import de.wayofquality.mill.docusaurus2.Docusaurus2Module
 import de.wayofquality.mill.mdoc.MDocModule
 import mill._
-import mill.api.{Loose, Result}
+import mill.modules.Jvm
 import mill.define.Sources
 import mill.define.Target
 import mill.scalajslib.ScalaJSModule
@@ -220,7 +220,49 @@ object zio extends Module {
 
       override def ivyDeps = T(super.ivyDeps() ++ Agg(deps.uzhttp))
 
+      def start() = T.command {
+
+        val baseDir = webapp.js.pkgServer().path.toIO.getAbsolutePath
+
+        Jvm.runSubprocess(
+          "zio.insight.server.InsightServer",
+          runClasspath().map(_.path),
+          jvmArgs = Seq(s"-DbaseDir=$baseDir")
+        )
+      }
+
       object test extends super.Tests()
+    }
+
+    object webapp extends ZIOModule {
+      override val deps = prjDeps
+
+      override def scalaVersion = T(crossScalaVersion)
+
+      object js extends super.JSModule {
+        override def ivyDeps = T(super.ivyDeps() ++ Agg(deps.scalaJsDom))
+
+        def pkgServer = T {
+          val dir = T.dest
+
+          os.makeDir.all(dir)
+          resources().foreach{ pr =>
+            os.walk(pr.path).foreach {p =>
+              val relPath = p.relativeTo(pr.path)
+              val dest : Path = dir / relPath
+
+              os.copy.over(p, dest, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
+            }
+          }
+
+          os.copy.over(fastOpt().path, dir / "insight.js")
+
+          PathRef(dir)
+        }
+
+        object test extends super.Tests {}
+
+      }
     }
     object core   extends ZIOModule {
 
