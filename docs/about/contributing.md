@@ -19,7 +19,7 @@ To begin contributing, please follow these steps:
 
 If you don't already have one, sign up for a free [GitHub Account](https://github.com/join?source=header-home).
 
-After you [log into](https://github.com/login) GitHub using your account, go to the [ZIO Project Page](https://github.com/zio/zio), and click on [Fork](https://github.com/zio/zio/fork) to fork the ZIO repository into your own account.
+After you [log into](https://github.com/login) GitHub using your account, go to the [ZIO Insight Project Page](https://github.com/zio/zio-insight), and click on [Fork](https://github.com/zio/zio-insight/fork) to fork the ZIO Insight repository into your own account.
 
 You will make _all_ contributions from your own account. No one contributes _directly_ to the main repository. Contributors only ever merge code from other people's forks into the main repository.
 
@@ -28,9 +28,9 @@ Once you have forked the repository, you can now clone your forked repository to
 To clone your forked repository, first make sure you have installed [Git](https://git-scm.com/downloads), the version control system used by GitHub. Then open a Terminal and type the following commands:
 
 ```bash
-mkdir zio
-cd zio
-git clone git@github.com:your-user-name/zio.git .
+mkdir zio-insight
+cd zio-insight
+git clone git@github.com:your-user-name/zio-insight.git .
 ```
 
 If these steps were successful, then congratulations, you now have a complete copy of the ZIO project!
@@ -39,43 +39,57 @@ The next step is to build the project on your machine, to ensure you know how to
 
 ### Build the Project
 
-The official way to build the project is with sbt. An sbt build file is included in the project, so if you choose to build the project this way, you won't have to do any additional configuration or setup (others choose to build the project using IntelliJ IDEA, Gradle, Maven, Mill, or Fury).
+For this project we are exploring [mill](https://com-lihaoyi.github.io/mill/mill/Intro_to_Mill.html) as the primary build tool. Once the project matures, the plan is to support both mill and sbt. 
 
-We use a custom sbt script, which is included in the repository, in order to ensure settings are uniform across all development machines, and the continuous integration service (Circle CI).
+A mill build file is included in the project, so if you choose to build the project this way, you won't have to do any additional configuration or setup (others choose to build the project using IntelliJ IDEA, Gradle, Maven, SBT, or Fury).
 
-The sbt script is in the root of the repository. To launch this script from your Terminal window, simply type:
+We use a mill wrapper script (millw)[https://github.com/lefou/millw] to download the required version of mill upon the first build. We recommend to use that script rather than a locally installed version of mill. This will ensure that the build is using the correct mill version. 
 
-```bash
-./sbt
-```
-
-Sbt will launch, read the project build file, and download dependencies as required.
-
-You can now compile the production source code with the following sbt command:
+The `millw` script is in the root of the repository. To launch this script and see all currently defined mill targets, 
+simply type:
 
 ```bash
-compile
+./millw -i resolve __
 ```
 
-You can compile the test source code with the following sbt command:
+Mill will launch, read the project build file, and download dependencies as required. Finally, it will show the currently defined targets.
+
+You can now compile the test and production source code with the following command:
 
 ```bash
-test:compile
+./millw -i -j 0 __.compile 
 ```
 
-[Learn more](https://www.scala-sbt.org) about sbt to understand how you can list projects, switch projects, and otherwise manage an sbt project.
-
-The main project in ZIO is `coreJVM` (the core project on the JVM; there is also `coreJS` for the core project on Scala.js), which you can focus on using sbt by issuing the following command:
+To find the currently defined test targets, you can run 
 
 ```bash
-project coreJVM
+./millw -i resolve __.test
 ```
+
+To run all tests, you can run 
+
+```bash
+./millw -i -j 0 __.test
+```
+
+While you are working the projects, we recommend to keep the tests continuously running in a separate terminal 
+using:
+
+```bash
+./millw -i -w -j 0 __.testCached
+```
+
+This will keep the mill session running and watch the source directories. It will recompile and retest the code 
+that has been affected by the latest changes saved. It will also memorize which tests have failed before and reexecute
+those once a source file is saved.
+
+[Learn more]https://com-lihaoyi.github.io/mill/mill/Intro_to_Mill.html) about mill to understand how you can list projects, switch projects, and otherwise manage a mill project.
 
 ### Find an Issue
 
-You may have your own idea about what contributions to make to ZIO, which is great! If you want to make sure the ZIO contributors are open to your idea, you can [open an issue](https://github.com/zio/zio/issues/new) first on the ZIO project site.
+You may have your own idea about what contributions to make to ZIO Insight, which is great! If you want to make sure the ZIO contributors are open to your idea, you can [open an issue](https://github.com/zio/zio-insight/issues/new) first on the ZIO project site.
 
-Otherwise, if you have no ideas about what to contribute, you can find a large supply of feature requests and bugs on the project's [issue tracker](https://github.com/zio/zio/issues).
+Otherwise, if you have no ideas about what to contribute, you can find a large supply of feature requests and bugs on the project's [issue tracker](https://github.com/zio/zio-insight/issues).
 
 Issues are tagged with various labels, such as `good first issue`, which help you find issues that are a fit for you.
 
@@ -91,7 +105,7 @@ The only thing you have to worry about is if you take too long, especially for a
 
 If you shoot for 2-3 weeks for most issues, this should give you plenty of time without having to worry about having your issue stolen.
 
-If you get stuck, please consider [opening a pull request](https://github.com/zio/zio/compare) for your incomplete work, and asking for help (just prefix the pull request by _WIP_). In addition, you can comment on the original issue, pointing people to your own fork. Both of these are great ways to get outside help from people more familiar with the project.
+If you get stuck, please consider [opening a pull request](https://github.com/zio/zio-insight/compare) for your incomplete work, and asking for help (just prefix the pull request by _WIP_). In addition, you can comment on the original issue, pointing people to your own fork. Both of these are great ways to get outside help from people more familiar with the project.
 
 ### Prepare Your Code
 
@@ -126,7 +140,7 @@ Now while you were working on this great improvement, it's quite likely that oth
 To do that, use the `git pull` command:
 
 ```bash
-git pull git@github.com:zio/zio.git master
+git pull git@github.com:zio/zio-insight.git master
 ```
 
 You may get a warning from Git that some files conflicted. Don't worry! That just means you and another contributor edited the same parts of the same files.
@@ -142,31 +156,53 @@ git commit -am "merged upstream changes"
 At this point, you should re-run all tests to make sure everything is passing:
 
 ```bash
-# If you are already in a SBT session you can type only 'test'
-
-sbt test
+./millw -i __.test
 ```
 
-If all the tests are passing, then you can format your code:
+If all the tests are passing, then you can check if your code is formatted correctly:
 
 ```bash
-# If you are already in a SBT session you can type only 'fmt'
-
-sbt fmt
+./millw -i __.checkFormat
 ```
 
-If your changes altered an API, then you may need to rebuild the microsite to make sure none of the (compiled) documentation breaks:
+In case you see any formatting errors, you can either fix those manually in your IDE or you can run 
 
 ```bash
-# If you are already in a SBT session you can type only 'docs/docusaurusCreateSite'
-
-sbt docs/docusaurusCreateSite
+./millw -i mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources
 ```
 
-(If you get an error about _Jekyll_, that means all the code examples work and you can ignore the rest.)
+If your changes altered an API, then you may need to rebuild the micro site to make sure none of the (compiled) documentation breaks. Note that you need to install [NodeJS](https://nodejs.org/en/) to build the documentation:
+
+```bash
+./millw -i __.docusaurusBuild
+```
 
 Finally, if you are up-to-date with master, all your tests are passing, you have properly formatted your code, and the microsite builds properly, then it's time to submit your work for review!
 
+### Work on the documentation 
+
+Good documentation is a crucial part of every project. In ZIO Insight we are using [Docusaurus 2](https://docusaurus.io) to build the micro site. All the infra structure code is located within the `website` folder. You only need to 
+touch the files in that folder in case you are making structural changes to the microsite (for example by adding a 
+new section to the navigation bar or by changing the navigation menu on the left hand side of the site)
+
+All content is located in the `docs` folder and this is where you will make most of your changes working on the actual 
+documentation. 
+
+ZIO Insight uses additional plugins to generate the web pages as described in this [blog post](https://blended-zio.github.io/blended-zio/blog/doc-helpers/). 
+
+The easiest way to work on the documentation is to run 
+
+```bash
+./millw -i __.mdocWatch
+```
+
+in one terminal session. This will create an initial build of the microsite in `out/zio/site/docusaurusBuild/dest`. 
+
+Once the initial build has finished, the mill session will start to watch for changes in the `docs` directory. Upon any change 
+in that directory, the md files will be recompiled with [mdoc](https://scalameta.org/mdoc/) and the output directory will be updated with the compilation result. 
+
+On another terminal, navigate to `out/zio/site/docusaurusBuild/dest` and run `yarn start`. This will start a docusaurus development server on `localhost:3000`. 
+You can open the micro site at http://localhost:3000/zio-insight. Any changes made in the `docs`folder will be reflected immediately in the browser.
 ### Create a Pull Request
 
 To create a pull request, first push all your changes to your fork of the project repository:
@@ -175,7 +211,7 @@ To create a pull request, first push all your changes to your fork of the projec
 git push
 ```
 
-Next, [open a new pull request](https://github.com/zio/zio/compare) on GitHub, and select _Compare Across Forks_. On the right hand side, choose your own fork of the ZIO repository, in which you've been making your contribution.
+Next, [open a new pull request](https://github.com/zio/zio-insight/compare) on GitHub, and select _Compare Across Forks_. On the right hand side, choose your own fork of the ZIO repository, in which you've been making your contribution.
 
 Provide a description for the pull request, which details the issue it is fixing, and has other information that may be helpful to developers reviewing the pull request.
 
@@ -195,7 +231,7 @@ After you make changes, you may need to remind reviewers to check out the code a
 
 If you don't get a merge in a day after your review is successful, then please gently remind folks that your code is ready to be merged.
 
-Sit back, relax, and enjoy being a ZIO contributor!
+Sit back, relax, and enjoy being a ZIO Insight contributor!
 
 # ZIO Contributor License Agreement
 

@@ -1,6 +1,6 @@
 ---
 id: main_index
-title:  "ZIO Profiling"
+title:  "ZIO Insight"
 ---
 
 Write something

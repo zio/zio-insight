@@ -1,6 +1,6 @@
 ---
 id: about_index
-title:  "About zio-profiling"
+title:  "About ZIO Insight"
 ---
 
 TODO: Tagline

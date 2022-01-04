@@ -2,12 +2,12 @@ module.exports = {
     title: 'ZIO Insight',
     tagline: 'Developer toolset for ZIO 2',
     url: 'https://zio.github.io',
-    baseUrl: '/insight/',
+    baseUrl: '/zio-insight/',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
     favicon: 'img/favicon.png',
     organizationName: 'zio',
-    projectName: 'insight',
+    projectName: 'zio-insight',
     themeConfig: {
         prism: {
             // In case we want to use one of the json packaged themes, we can simply require those
@@ -17,7 +17,7 @@ module.exports = {
             // use an empty theme config. The stylesheet must then be included in the stylesheets
             // section below.
             // The CSS stylesheets are included from  https://github.com/PrismJS/prism-themes.git
-            theme: {plain: [], styles: []},
+            theme: { plain: [], styles: [] },
             additionalLanguages: ['json', 'java', 'scala'],
         },
         navbar: {
@@ -27,9 +27,9 @@ module.exports = {
                 src: '/img/navbar_brand.png',
             },
             items: [
-                {to: 'overview/', label: 'Overview', position: 'right'},
-                {to: 'usecases/', label: 'Use Cases', position: 'right'},
-                {to: 'about/', label: 'About', position: 'right'}
+                { to: 'overview/', label: 'Overview', position: 'right' },
+                { to: 'usecases/', label: 'Use Cases', position: 'right' },
+                { to: 'about/', label: 'About', position: 'right' }
             ],
         },
         footer: {
@@ -97,7 +97,7 @@ module.exports = {
                     routeBasePath: '/',
                     sidebarPath: require.resolve('./sidebars.js'),
                     remarkPlugins: [
-                        [require('blended-include-code-plugin'), {marker: 'CODE_INCLUDE'}],
+                        [require('blended-include-code-plugin'), { marker: 'CODE_INCLUDE' }],
                         [require('remark-kroki-plugin'), {
                             krokiBase: 'https://kroki.io',
                             lang: "kroki",
