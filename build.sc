@@ -95,7 +95,7 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
 
     val fatalWarnings: Seq[String] =
       if (sys.env.contains("CI")) {
-        Seq("-Xfatal-warnings")
+        Seq("-Werror")
       } else {
         Seq.empty
       }
@@ -103,8 +103,7 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
     val stdOptions: Seq[String] = Seq(
       "-deprecation",
       "-encoding",
-      "UTF-8",
-      "-Werror"
+      "UTF-8"
     ) ++ fatalWarnings
 
     deps.prjScalaVersion match {
