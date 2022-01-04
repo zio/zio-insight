@@ -83,7 +83,7 @@ This will keep the mill session running and watch the source directories. It wil
 that has been affected by the latest changes saved. It will also memorize which tests have failed before and reexecute
 those once a source file is saved.
 
-[Learn more]https://com-lihaoyi.github.io/mill/mill/Intro_to_Mill.html) about mill to understand how you can list projects, switch projects, and otherwise manage a mill project.
+[Learn more](https://com-lihaoyi.github.io/mill/mill/Intro_to_Mill.html) about mill to understand how you can list projects, switch projects, and otherwise manage a mill project.
 
 ### Find an Issue
 
