@@ -45,8 +45,14 @@ trait Deps {
   def prjScalaVersion: PrjScalaVersion
   val scalaVersion   = prjScalaVersion.version
   val scalaJSVersion = "1.8.0"
+  val zioVersion     = "2.0.0-RC1"
 
-  val zioVersion = "2.0.0-RC1"
+  val scalaJsDom = ivy"org.scala-js::scalajs-dom::2.1.0"
+
+  // For now we will use uzHttp on the server side, but we will
+  // switch to zio-http as soon as a stable version on ZIO 2 is
+  // available
+  val uzhttp = ivy"org.polynote::uzhttp:0.3.0-RC2"
 
   val zio        = ivy"dev.zio::zio::$zioVersion"
   val zioTest    = ivy"dev.zio::zio-test::$zioVersion"
@@ -72,6 +78,10 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
   }
 
   def moduleName = millModuleSegments.parts.filterNot(_.equals(deps.prjScalaVersion.version)).mkString("-")
+
+  override def millSourcePath = projectDir / moduleName
+
+  override def artifactName: T[String] = T(moduleName)
 
   def extraSources: Seq[String] = deps.prjScalaVersion match {
     case PrjScalaVersion.Scala_2_13_7 => Seq("2.13")
@@ -141,7 +151,7 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
         case PrjScalaVersion.Scala_2_13_7 => Agg(ivy"$silencerLib")
         case _                            => Agg.empty[Dep]
       }
-      super.ivyDeps() ++ libs
+      super.ivyDeps() ++ libs ++ Agg(deps.zio)
     }
 
   trait Tests extends super.Tests with ScalafmtModule with ScalafixModule {
@@ -164,6 +174,9 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
     override def sources: Sources = T.sources(outer.createSourcePaths(PrjKind.JsProject, "main", outer.extraSources))
 
     override def ivyDeps = outer.ivyDeps
+
+    // This is required to make web components developed with Scala.JS work
+    override def useECMAScript2015 = T(true)
 
     trait Tests extends outer.Tests with ScalaJSModule {
       override def scalaJSVersion: Target[String] = outerJS.scalaJSVersion
@@ -195,26 +208,31 @@ object zio extends Module {
   object insight                              extends Cross[ZIOInsight](PrjScalaVersion.default.version)
   class ZIOInsight(crossScalaVersion: String) extends Module {
     val prjScalaVersion = PrjScalaVersion(crossScalaVersion)
+    val prjDeps         = prjScalaVersion match {
+      case PrjScalaVersion.Scala_2_13_7 => Deps_213
+      case PrjScalaVersion.Scala_3_1_0  => Deps_31
+    }
 
-    object core extends ZIOModule {
-      override def deps = prjScalaVersion match {
-        case PrjScalaVersion.Scala_2_13_7 => Deps_213
-        case PrjScalaVersion.Scala_3_1_0  => Deps_31
-      }
+    object server extends ZIOModule {
+      override val deps = prjDeps
 
       override def scalaVersion = T(crossScalaVersion)
 
-      override def ivyDeps = T(super.ivyDeps() ++ Agg(deps.zio))
+      override def ivyDeps = T(super.ivyDeps() ++ Agg(deps.uzhttp))
 
-      override def millSourcePath = projectDir / moduleName
+      object test extends super.Tests()
+    }
+    object core   extends ZIOModule {
 
-      override def artifactName: T[String] = T(moduleName)
+      override val deps = prjDeps
 
-      def runDummy = T(runMain("zio.insight.HelloWorld"))
+      override def scalaVersion = T(crossScalaVersion)
 
       object test extends super.Tests {}
 
       object js extends super.JSModule {
+
+        override def ivyDeps = T(super.ivyDeps() ++ Agg(deps.scalaJsDom))
         object test extends super.Tests {}
       }
     }
