@@ -20,6 +20,10 @@ import os.Path
 // It's convenient to keep the base project directory around
 val projectDir = build.millSourcePath
 
+def isProd() = T.command {
+  sys.env.getOrElse("PROD", "false").equalsIgnoreCase("true")
+}
+
 sealed trait PrjKind { val kind: String }
 object PrjKind       {
   case object JvmProject extends PrjKind { val kind = "jvm" }
@@ -196,6 +200,11 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
   }
 }
 
+trait NpmRunModule extends Module {
+
+  def npmSources = T.sources { millSourcePath / "npm" }
+}
+
 object zio extends Module {
 
   object site extends Docusaurus2Module with MDocModule {
@@ -244,7 +253,7 @@ object zio extends Module {
 
       override def scalaVersion = T(crossScalaVersion)
 
-      object js extends super.JSModule {
+      object js extends super.JSModule with NpmRunModule {
         override def ivyDeps = T(
           super.ivyDeps() ++ Agg(
             deps.scalaJsDom,
@@ -267,7 +276,11 @@ object zio extends Module {
             }
           }
 
-          os.copy.over(fastOpt().path, dir / "insight.js")
+          if (isProd()()) {
+            os.copy.over(fullOpt().path, dir / "insight.js")
+          } else {
+            os.copy.over(fastOpt().path, dir / "insight.js")
+          }
 
           PathRef(dir)
         }
