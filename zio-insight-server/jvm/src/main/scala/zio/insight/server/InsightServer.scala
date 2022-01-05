@@ -12,7 +12,7 @@ import uzhttp.Request.Method
 import uzhttp.server.Server
 
 object InsightServer extends ZIOAppDefault:
-  private val bindHost = "localhost"
+  private val bindHost = "0.0.0.0"
   private val bindPort = 8888
 
   private val staticContext = "/static/"

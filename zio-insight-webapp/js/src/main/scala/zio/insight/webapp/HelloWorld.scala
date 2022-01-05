@@ -1,14 +1,23 @@
 package zio.insight.webapp
 
 import scala.scalajs.js
+import scala.scalajs.js.Dynamic.literal
 import scala.scalajs.js.annotation.JSGlobal
 
+import com.raquo.laminar.api.L._
+import com.raquo.laminar.builders.HtmlTag
+import com.raquo.laminar.nodes.ReactiveElement
+
 import org.scalajs.dom
-import org.scalajs.dom.HTMLElement
 
 @js.native
 trait CustomElementsRegistry extends js.Any:
   def define(name: String, definition: Any): Unit = js.native
+end CustomElementsRegistry
+
+object CustomElementsRegistry:
+  def customElements =
+    js.Dynamic.global.window.asInstanceOf[Window].customElements
 end CustomElementsRegistry
 
 @js.native
@@ -29,9 +38,41 @@ class HTMLElement extends dom.HTMLEmbedElement:
   def attachShadow(options: js.Any): dom.HTMLEmbedElement = js.native
 end HTMLElement
 
-object HelloWorld:
-  def main(args: Array[String]) = count
+class ParagraphElement extends HTMLElement:
 
-  private def count =
-    0.to(10).foreach(i => println(s"Counting ... $i"))
+  private lazy val template = dom.document.getElementById("my-paragraph").asInstanceOf[HTMLTemplateElement]
+  private lazy val shadow   = this.attachShadow(literal(mode = "closed"))
+
+  shadow.appendChild(template.content.cloneNode(true))
+end ParagraphElement
+
+object MainView:
+
+  def render =
+    div(
+      MyParagraph()
+    )
+end MainView
+
+object MyParagraph:
+
+  type El          = ReactiveElement[ParagraphElement]
+  type ModFunction = MyParagraph.type => Mod[El]
+
+  private val tag = new HtmlTag[ParagraphElement]("my-paragraph", void = false)
+
+  def apply(mods: ModFunction*): El =
+    tag(mods.map(_(MyParagraph)): _*)
+
+end MyParagraph
+
+object HelloWorld:
+  def main(args: Array[String]) =
+
+    val _ = documentEvents.onDomContentLoaded.foreach { _ =>
+      CustomElementsRegistry.customElements.define("my-paragraph", js.constructorOf[ParagraphElement])
+      val appContainer = dom.document.getElementById("app")
+      appContainer.innerHTML = ""
+      val _            = render(appContainer, MainView.render)
+    }(unsafeWindowOwner)
 end HelloWorld

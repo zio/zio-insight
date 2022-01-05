@@ -8,9 +8,9 @@ import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.mdoc::0.0.1-4
 import de.wayofquality.mill.docusaurus2.Docusaurus2Module
 import de.wayofquality.mill.mdoc.MDocModule
 import mill._
-import mill.modules.Jvm
 import mill.define.Sources
 import mill.define.Target
+import mill.modules.Jvm
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib._
 // Scalafix and Scala Format
@@ -43,9 +43,14 @@ object PrjScalaVersion       {
 
 trait Deps {
   def prjScalaVersion: PrjScalaVersion
-  val scalaVersion   = prjScalaVersion.version
+  val scalaVersion = prjScalaVersion.version
+
+  val laminarVersion = "0.14.2"
   val scalaJSVersion = "1.8.0"
   val zioVersion     = "2.0.0-RC1"
+
+  val airstream = ivy"com.raquo::airstream::$laminarVersion"
+  val laminar   = ivy"com.raquo::laminar::$laminarVersion"
 
   val scalaJsDom = ivy"org.scala-js::scalajs-dom::2.1.0"
 
@@ -240,18 +245,25 @@ object zio extends Module {
       override def scalaVersion = T(crossScalaVersion)
 
       object js extends super.JSModule {
-        override def ivyDeps = T(super.ivyDeps() ++ Agg(deps.scalaJsDom))
+        override def ivyDeps = T(
+          super.ivyDeps() ++ Agg(
+            deps.scalaJsDom,
+            deps.laminar,
+            deps.airstream
+          )
+        )
 
         def pkgServer = T {
           val dir = T.dest
 
           os.makeDir.all(dir)
-          resources().foreach{ pr =>
-            os.walk(pr.path).foreach {p =>
-              val relPath = p.relativeTo(pr.path)
-              val dest : Path = dir / relPath
+          resources().foreach { pr =>
+            os.walk(pr.path).foreach { p =>
+              val relPath    = p.relativeTo(pr.path)
+              val dest: Path = dir / relPath
 
-              os.copy.over(p, dest, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
+              os.copy
+                .over(p, dest, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
             }
           }
 
