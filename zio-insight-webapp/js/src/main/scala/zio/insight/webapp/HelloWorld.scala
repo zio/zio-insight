@@ -41,7 +41,7 @@ end HTMLElement
 class ParagraphElement extends HTMLElement:
 
   private lazy val template = dom.document.getElementById("my-paragraph").asInstanceOf[HTMLTemplateElement]
-  private lazy val shadow   = this.attachShadow(literal(mode = "closed"))
+  private lazy val shadow   = this.attachShadow(literal(mode = "open"))
 
   shadow.appendChild(template.content.cloneNode(true))
 end ParagraphElement
@@ -50,6 +50,7 @@ object MainView:
 
   def render =
     div(
+      MyParagraph(),
       MyParagraph()
     )
 end MainView

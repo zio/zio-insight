@@ -45,6 +45,31 @@ object PrjScalaVersion       {
   val all     = Seq(Scala_2_13_7, Scala_3_1_0)
 }
 
+object BuildUtils {
+
+  def copySources(from: Seq[Path], to: Path) = {
+    from.foreach { path =>
+      os.walk(path).foreach { file =>
+        val relPath    = file.relativeTo(path)
+        val dest: Path = to / relPath
+
+        os.copy
+          .over(file, dest, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
+      }
+    }
+  }
+
+  def cloneDirectory(from: Path, to: Path) = {
+    os.list(to).foreach(os.remove.all)
+    os.list(from).foreach { p =>
+      os.copy.into(p, to, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true, mergeFolders = false)
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------------------------------------------
+ * Dependency management
+ * ---------------------------------------------------------------------------------------------------------- */
 trait Deps {
   def prjScalaVersion: PrjScalaVersion
   val scalaVersion = prjScalaVersion.version
@@ -198,11 +223,33 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
     }
 
   }
-}
+} /* end ZIOModule */
 
 trait NpmRunModule extends Module {
 
   def npmSources = T.sources { millSourcePath / "npm" }
+
+  protected def runAndWait(cmd: Seq[String], envArgs: Map[String, String], dir: Path) = {
+    val proc = Jvm.spawnSubprocess(cmd, envArgs.updated("PROJECT_DIR", projectDir.toIO.getAbsolutePath), dir)
+    proc.join()
+  }
+
+  def npmInstall = T {
+    val dest = T.dest
+
+    npmSources().foreach{ pr =>
+      val srcDir = pr.path
+      os.walk(srcDir).foreach{ p =>
+        val relPath = p.relativeTo(srcDir)
+        val target = dest / relPath
+        os.copy.over(p, target,followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
+      }
+    }
+
+    runAndWait(Seq("yarn", "install", "--check-files"), Map.empty, dest)
+
+    PathRef(dest)
+  }
 }
 
 object zio extends Module {
@@ -254,6 +301,8 @@ object zio extends Module {
       override def scalaVersion = T(crossScalaVersion)
 
       object js extends super.JSModule with NpmRunModule {
+        def tailwindSources = T.sources(millSourcePath / "tailwind")
+
         override def ivyDeps = T(
           super.ivyDeps() ++ Agg(
             deps.scalaJsDom,
@@ -265,30 +314,50 @@ object zio extends Module {
         def pkgServer = T {
           val dir = T.dest
 
-          os.makeDir.all(dir)
-          resources().foreach { pr =>
-            os.walk(pr.path).foreach { p =>
-              val relPath    = p.relativeTo(pr.path)
-              val dest: Path = dir / relPath
-
-              os.copy
-                .over(p, dest, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
-            }
-          }
+          BuildUtils.copySources(resources().map(_.path), dir)
 
           if (isProd()()) {
-            os.copy.over(fullOpt().path, dir / "insight.js")
+            os.copy.over(rollupJS().path / "insight.js", dir / "insight.js")
           } else {
             os.copy.over(fastOpt().path, dir / "insight.js")
           }
 
+          os.copy.into(tailwind().path, dir)
+
           PathRef(dir)
+        }
+
+        def rollupJS = T{
+          def dir = T.dest
+
+          val fileRef =
+            s"""const file = '${fullOpt().path.toIO.getAbsolutePath}'
+               |module.exports = file""".stripMargin
+
+          BuildUtils.cloneDirectory(npmInstall().path, dir)
+          os.write.over(dir / "jsfile.js", fileRef.getBytes())
+          runAndWait(Seq("yarn", "install", "--force"), Map.empty, dir)
+          runAndWait(Seq("npx", "rollup", "-c"), Map.empty, dir)
+
+          PathRef(dir)
+        }
+
+        def tailwind = T {
+          val dir = T.dest
+
+          BuildUtils.cloneDirectory(npmInstall().path, dir)
+          runAndWait(Seq("yarn", "install", "--force"), Map.empty, dir)
+          BuildUtils.copySources(tailwindSources().map(_.path), dir)
+          runAndWait(Seq("npx", "tailwindcss", "-i", "./input.css", "-o", "insight.css"), Map.empty, dir)
+
+          PathRef(dir / "insight.css")
         }
 
         object test extends super.Tests {}
 
       }
     }
+
     object core   extends ZIOModule {
 
       override val deps = prjDeps
