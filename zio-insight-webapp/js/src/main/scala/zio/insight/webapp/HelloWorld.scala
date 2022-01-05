@@ -69,10 +69,15 @@ end MyParagraph
 object HelloWorld:
   def main(args: Array[String]) =
 
+<<<<<<< Updated upstream
     val _ = documentEvents.onDomContentLoaded.foreach { _ =>
       CustomElementsRegistry.customElements.define("my-paragraph", js.constructorOf[ParagraphElement])
       val appContainer = dom.document.getElementById("app")
       appContainer.innerHTML = ""
       val _            = render(appContainer, MainView.render)
     }(unsafeWindowOwner)
+=======
+  private def count =
+    0.to(20).foreach(i => println(s"Counting ... $i"))
+>>>>>>> Stashed changes
 end HelloWorld
