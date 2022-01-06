@@ -20,7 +20,7 @@ import os.Path
 // It's convenient to keep the base project directory around
 val projectDir = build.millSourcePath
 
-def isProd() = T.command {
+lazy val isProd = {
   sys.env.getOrElse("PROD", "false").equalsIgnoreCase("true")
 }
 
@@ -47,7 +47,7 @@ object PrjScalaVersion       {
 
 object BuildUtils {
 
-  def copySources(from: Seq[Path], to: Path) = {
+  def copySources(from: Seq[Path], to: Path) =
     from.foreach { path =>
       os.walk(path).foreach { file =>
         val relPath    = file.relativeTo(path)
@@ -57,12 +57,19 @@ object BuildUtils {
           .over(file, dest, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
       }
     }
-  }
 
   def cloneDirectory(from: Path, to: Path) = {
     os.list(to).foreach(os.remove.all)
     os.list(from).foreach { p =>
-      os.copy.into(p, to, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true, mergeFolders = false)
+      os.copy.into(
+        p,
+        to,
+        followLinks = true,
+        replaceExisting = true,
+        copyAttributes = true,
+        createFolders = true,
+        mergeFolders = false
+      )
     }
   }
 }
@@ -227,7 +234,7 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
 
 trait NpmRunModule extends Module {
 
-  def npmSources = T.sources { millSourcePath / "npm" }
+  def npmSources = T.sources(millSourcePath / "npm")
 
   protected def runAndWait(cmd: Seq[String], envArgs: Map[String, String], dir: Path) = {
     val proc = Jvm.spawnSubprocess(cmd, envArgs.updated("PROJECT_DIR", projectDir.toIO.getAbsolutePath), dir)
@@ -237,12 +244,12 @@ trait NpmRunModule extends Module {
   def npmInstall = T {
     val dest = T.dest
 
-    npmSources().foreach{ pr =>
+    npmSources().foreach { pr =>
       val srcDir = pr.path
-      os.walk(srcDir).foreach{ p =>
+      os.walk(srcDir).foreach { p =>
         val relPath = p.relativeTo(srcDir)
-        val target = dest / relPath
-        os.copy.over(p, target,followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
+        val target  = dest / relPath
+        os.copy.over(p, target, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
       }
     }
 
@@ -311,23 +318,28 @@ object zio extends Module {
           )
         )
 
-        def pkgServer = T {
-          val dir = T.dest
+        def pkgServer = {
+          val bundleJS =
+            if (isProd) T.task {
+              rollupJS().path
+            }
+            else T.task {
+              fastOpt().path
+            }
 
-          BuildUtils.copySources(resources().map(_.path), dir)
+          T {
+            val dir = T.dest
 
-          if (isProd()()) {
-            os.copy.over(rollupJS().path / "insight.js", dir / "insight.js")
-          } else {
-            os.copy.over(fastOpt().path, dir / "insight.js")
+            BuildUtils.copySources(resources().map(_.path), dir)
+            os.copy.over(bundleJS(), dir / "insight.js")
+
+            os.copy.into(tailwind().path, dir)
+
+            PathRef(dir)
           }
-
-          os.copy.into(tailwind().path, dir)
-
-          PathRef(dir)
         }
 
-        def rollupJS = T{
+        def rollupJS = T {
           def dir = T.dest
 
           val fileRef =
@@ -358,7 +370,7 @@ object zio extends Module {
       }
     }
 
-    object core   extends ZIOModule {
+    object core extends ZIOModule {
 
       override val deps = prjDeps
 

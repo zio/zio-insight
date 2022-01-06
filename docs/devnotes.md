@@ -11,3 +11,7 @@ https://laminar.dev/examples/web-components
 
 - Need to look at the generator - can the generator be generalized ?
 - Can the generator be replaced / kickstarted with ScalaJS ?
+
+## Simple ZIO Integration with Laminar
+
+https://github.com/sherpal/BattleForFlatland/blob/master/frontend/src/main/scala/utils/laminarzio/Implicits.scala

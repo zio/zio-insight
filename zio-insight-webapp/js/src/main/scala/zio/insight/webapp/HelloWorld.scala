@@ -39,11 +39,17 @@ class HTMLElement extends dom.HTMLEmbedElement:
 end HTMLElement
 
 class ParagraphElement extends HTMLElement:
-
+  self =>
   private lazy val template = dom.document.getElementById("my-paragraph").asInstanceOf[HTMLTemplateElement]
-  private lazy val shadow   = this.attachShadow(literal(mode = "open"))
+  private lazy val shadow   = self.attachShadow(literal(mode = "open"))
 
-  shadow.appendChild(template.content.cloneNode(true))
+  val element = div(
+    h1("Test"),
+    p("another Test")
+  )
+
+  shadow.innerHTML = ""
+  shadow.appendChild(element.ref)
 end ParagraphElement
 
 object MainView:
