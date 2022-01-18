@@ -44,8 +44,9 @@ class ParagraphElement extends HTMLElement:
   private lazy val shadow   = self.attachShadow(literal(mode = "open"))
 
   val element = div(
-    h1("Test"),
-    p("another Test")
+    linkTag(href := "insight.css", rel := "stylesheet"),
+    h1(cls       := "p-2 bg-red-200 rounded-full", "Test"),
+    p(cls        := "p-2 bg-blue-100 rounded-full", "another Test")
   )
 
   shadow.innerHTML = ""
@@ -56,6 +57,7 @@ object MainView:
 
   def render =
     div(
+      MyParagraph(),
       MyParagraph(),
       MyParagraph()
     )
