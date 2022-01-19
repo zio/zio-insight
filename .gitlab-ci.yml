@@ -1,3 +1,5 @@
+image: blended/zulu-alpine-1.8.275
+
 stages:
   - prepare
 
