@@ -20,9 +20,8 @@ import os.Path
 // It's convenient to keep the base project directory around
 val projectDir = build.millSourcePath
 
-lazy val isProd = {
+lazy val isProd =
   sys.env.getOrElse("PROD", "false").equalsIgnoreCase("true")
-}
 
 sealed trait PrjKind { val kind: String }
 object PrjKind       {
@@ -90,10 +89,7 @@ trait Deps {
 
   val scalaJsDom = ivy"org.scala-js::scalajs-dom::2.1.0"
 
-  // For now we will use uzHttp on the server side, but we will
-  // switch to zio-http as soon as a stable version on ZIO 2 is
-  // available
-  val uzhttp = ivy"org.polynote::uzhttp:0.3.0-RC2"
+  val zioHttp = ivy"io.d11::zhttp:2.0.0-RC1"
 
   val zio        = ivy"dev.zio::zio::$zioVersion"
   val zioTest    = ivy"dev.zio::zio-test::$zioVersion"
@@ -257,7 +253,7 @@ trait NpmRunModule extends Module {
 
     PathRef(dest)
   }
-}
+} /* End NpmRunModule */
 
 object zio extends Module {
 
@@ -286,7 +282,7 @@ object zio extends Module {
 
       override def scalaVersion = T(crossScalaVersion)
 
-      override def ivyDeps = T(super.ivyDeps() ++ Agg(deps.uzhttp))
+      override def ivyDeps = T(super.ivyDeps() ++ Agg(deps.zioHttp))
 
       def start() = T.command {
 
@@ -323,9 +319,10 @@ object zio extends Module {
             if (isProd) T.task {
               rollupJS().path
             }
-            else T.task {
-              fastOpt().path
-            }
+            else
+              T.task {
+                fastOpt().path
+              }
 
           T {
             val dir = T.dest
