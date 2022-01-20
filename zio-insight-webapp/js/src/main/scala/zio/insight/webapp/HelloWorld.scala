@@ -46,7 +46,7 @@ class ParagraphElement extends HTMLElement:
   val element = div(
     linkTag(href := "insight.css", rel := "stylesheet"),
     h1(cls       := "p-2 bg-yellow-200 rounded-full", "Test"),
-    p(cls        := "p-2 bg-green-100 rounded-full", "another Test")
+    p(cls        := "p-2 bg-blue-100 rounded-full", "another Test")
   )
 
   shadow.innerHTML = ""
@@ -57,9 +57,7 @@ object MainView:
 
   def render =
     div(
-      MyParagraph(),
-      MyParagraph(),
-      MyParagraph()
+      1.to(10).map(_ => MyParagraph())
     )
 end MainView
 

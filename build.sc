@@ -288,10 +288,12 @@ object zio extends Module {
 
         val baseDir = webapp.js.pkgServer().path.toIO.getAbsolutePath
 
+        T.log.info(s"Starting Insight Server with base directory <$baseDir>")
+
         Jvm.runSubprocess(
           "zio.insight.server.InsightServer",
           runClasspath().map(_.path),
-          jvmArgs = Seq(s"-DbaseDir=$baseDir")
+          jvmArgs = Seq(s"-DbaseDir=$baseDir", "-Djava.net.preferIPv4Stack=true")
         )
       }
 
