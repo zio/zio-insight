@@ -7,7 +7,7 @@ env:
 on:
   pull_request:
   push:
-    branches: ['main']
+    branches: ["main"]
   release:
     types:
       - published
@@ -38,8 +38,8 @@ jobs:
         uses: olafurpg/setup-scala@v10
       - name: Cache scala dependencies
         uses: coursier/cache-action@v6
-      - name: Check Document Generation
-        run: ./millw -i __.site.docusaurusBuild
+      - name: Check Document Compilation
+        run: ./millw -i __.mdoc
 
   test:
     runs-on: ubuntu-20.04
@@ -47,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: ['adopt@1.8', 'adopt@1.11']
+        java: ["adopt@1.8", "adopt@1.11"]
     steps:
       - name: Checkout current branch
         uses: actions/checkout@v2.3.4
@@ -69,24 +69,46 @@ jobs:
       - name: Aggregate of lint, and all tests
         run: echo "ci passed"
 
-#  publish:
-#    runs-on: ubuntu-20.04
-#    timeout-minutes: 30
-#    needs: [ci]
-#    if: github.event_name != 'pull_request'
-#    steps:
-#      - name: Checkout current branch
-#        uses: actions/checkout@v2.3.4
-#        with:
-#          fetch-depth: 0
-#      - name: Setup Scala and Java
-#        uses: olafurpg/setup-scala@v10
-#      - name: Cache scala dependencies
-#        uses: coursier/cache-action@v6
-#      - name: Release artifacts
-#        run: sbt ci-release
-#        env:
-#          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-#          PGP_SECRET: ${{ secrets.PGP_SECRET }}
-#          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-#          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+  publish-site:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 30
+    needs: [ci]
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: "0"
+      - name: Setup Scala and Java
+        uses: olafurpg/setup-scala@v13
+      - run: |
+          ./millw -i -j 0 __.docusaurusBuild
+      - name: Release to GitHub Pages
+        # publish the site whenever a tag has been pushed, for site only release
+        # we will use tags of the form 'docs.yyyyMMdd'
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        uses: JamesIves/github-pages-deploy-action@4.1.5
+        with:
+          branch: gh-pages
+          folder: ./out/zio/site/docusaurusBuild/dest/build/
+
+  publish-version:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 30
+    needs: [ci]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Setup GPG secrets
+        run: |
+          gpg --version
+          cat <(echo "${{ secrets.PGP_SECRET }}") | base64 -d | gpg --batch --import
+          gpg --list-secret-keys --keyid-format LONG
+      - name: Checkout current branch
+        uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 0
+      - name: Setup Scala and Java
+        uses: olafurpg/setup-scala@v10
+      - name: Cache scala dependencies
+        uses: coursier/cache-action@v6
+      - name: Release artifacts
+        run: ./millw -i mill.scalalib.PublishModule/publishAll --sonatypeCreds "${{ secrets.SONATYPE_USERNAME}}:${{ secrets.SONATYPE_PASSWORD }}" --gpgArgs "--passphrase=${{ secrets.PGP_PASSPHRASE}},--batch,--yes,-a,-b,--pinentry-mode,loopback" --publishArtifacts blended[${{ matrix.scala-version }}].__.publishArtifacts --readTimeout 600000 --release true --signed true
