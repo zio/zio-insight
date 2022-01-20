@@ -7,10 +7,10 @@ env:
 on:
   pull_request:
   push:
-    branches: ["main"]
-  release:
-    types:
-      - published
+    branches:
+      - "main"
+    tags:
+      - "*"
 
 jobs:
   lint:
