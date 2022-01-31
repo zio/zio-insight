@@ -82,14 +82,14 @@ trait Deps {
 
   val laminarVersion = "0.14.2"
   val scalaJSVersion = "1.8.0"
-  val zioVersion     = "2.0.0-RC2"
+  val zioVersion     = "2.0.0-RC1"
 
   val airstream = ivy"com.raquo::airstream::$laminarVersion"
   val laminar   = ivy"com.raquo::laminar::$laminarVersion"
 
   val scalaJsDom = ivy"org.scala-js::scalajs-dom::2.1.0"
 
-  val zioHttp = ivy"io.d11::zhttp:2.0.0-RC2"
+  val zioHttp = ivy"io.d11::zhttp:2.0.0-RC1"
 
   val zio        = ivy"dev.zio::zio::$zioVersion"
   val zioTest    = ivy"dev.zio::zio-test::$zioVersion"
