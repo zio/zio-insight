@@ -1,10 +1,10 @@
 import com.goyeau.mill.scalafix.ScalafixModule
 
-import $ivy.`com.goyeau::mill-scalafix:0.2.6`
+import $ivy.`com.goyeau::mill-scalafix::0.2.8`
 // Add simple docusaurus2 support for mill
-import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.docusaurus2::0.0.1`
+import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.docusaurus2::0.0.3`
 // Add simple mdoc support for mill
-import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.mdoc::0.0.1-4-0ce9fb`
+import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.mdoc::0.0.4`
 import de.wayofquality.mill.docusaurus2.Docusaurus2Module
 import de.wayofquality.mill.mdoc.MDocModule
 import mill._
@@ -31,17 +31,17 @@ object PrjKind       {
 
 sealed trait PrjScalaVersion { val version: String }
 object PrjScalaVersion       {
-  case object Scala_2_13_7 extends PrjScalaVersion { val version = "2.13.7" }
-  case object Scala_3_1_0  extends PrjScalaVersion { val version = "3.1.0"  }
+  case object Scala_2_13  extends PrjScalaVersion { val version = "2.13.8" }
+  case object Scala_3_1_0 extends PrjScalaVersion { val version = "3.1.0"  }
 
   def apply(v: String): PrjScalaVersion = v match {
-    case Scala_2_13_7.version => Scala_2_13_7
-    case Scala_3_1_0.version  => Scala_3_1_0
-    case v                    => throw new Exception(s"Unknown Scala version <$v>")
+    case Scala_2_13.version  => Scala_2_13
+    case Scala_3_1_0.version => Scala_3_1_0
+    case v                   => throw new Exception(s"Unknown Scala version <$v>")
   }
 
   val default = Scala_3_1_0
-  val all     = Seq(Scala_2_13_7, Scala_3_1_0)
+  val all     = Seq(Scala_2_13, Scala_3_1_0)
 }
 
 object BuildUtils {
@@ -82,14 +82,14 @@ trait Deps {
 
   val laminarVersion = "0.14.2"
   val scalaJSVersion = "1.8.0"
-  val zioVersion     = "2.0.0-RC1"
+  val zioVersion     = "2.0.0-RC2"
 
   val airstream = ivy"com.raquo::airstream::$laminarVersion"
   val laminar   = ivy"com.raquo::laminar::$laminarVersion"
 
   val scalaJsDom = ivy"org.scala-js::scalajs-dom::2.1.0"
 
-  val zioHttp = ivy"io.d11::zhttp:2.0.0-RC1"
+  val zioHttp = ivy"io.d11::zhttp:2.0.0-RC2"
 
   val zio        = ivy"dev.zio::zio::$zioVersion"
   val zioTest    = ivy"dev.zio::zio-test::$zioVersion"
@@ -97,7 +97,7 @@ trait Deps {
 }
 
 object Deps_213 extends Deps {
-  override def prjScalaVersion: PrjScalaVersion = PrjScalaVersion.Scala_2_13_7
+  override def prjScalaVersion: PrjScalaVersion = PrjScalaVersion.Scala_2_13
 }
 
 object Deps_31 extends Deps {
@@ -109,8 +109,8 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
 
   def scalafixScalaBinaryVersion = T {
     deps.prjScalaVersion match {
-      case PrjScalaVersion.Scala_2_13_7 => "2.13"
-      case PrjScalaVersion.Scala_3_1_0  => "3"
+      case PrjScalaVersion.Scala_2_13  => "2.13"
+      case PrjScalaVersion.Scala_3_1_0 => "3"
     }
   }
 
@@ -121,8 +121,8 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
   override def artifactName: T[String] = T(moduleName)
 
   def extraSources: Seq[String] = deps.prjScalaVersion match {
-    case PrjScalaVersion.Scala_2_13_7 => Seq("2.13")
-    case PrjScalaVersion.Scala_3_1_0  => Seq("3.x")
+    case PrjScalaVersion.Scala_2_13  => Seq("2.13")
+    case PrjScalaVersion.Scala_3_1_0 => Seq("3.x")
   }
 
   def createSourcePaths(prjKind: PrjKind, scope: String, extra: Seq[String]): Seq[PathRef] =
@@ -154,7 +154,7 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
     ) ++ fatalWarnings
 
     deps.prjScalaVersion match {
-      case PrjScalaVersion.Scala_2_13_7 =>
+      case PrjScalaVersion.Scala_2_13  =>
         stdOptions ++
           Seq(
             "-feature",
@@ -168,7 +168,7 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
             "-Wvalue-discard",
             "-Xsource:3"
           )
-      case PrjScalaVersion.Scala_3_1_0  =>
+      case PrjScalaVersion.Scala_3_1_0 =>
         stdOptions
     }
   }
@@ -176,8 +176,8 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
   override def scalacPluginIvyDeps =
     T {
       val libs: Agg[Dep] = deps.prjScalaVersion match {
-        case PrjScalaVersion.Scala_2_13_7 => Agg(ivy"$silencerLib")
-        case _                            => Agg.empty[Dep]
+        case PrjScalaVersion.Scala_2_13 => Agg(ivy"$silencerLib")
+        case _                          => Agg.empty[Dep]
       }
       super.scalacPluginIvyDeps() ++ libs
     }
@@ -185,8 +185,8 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
   override def ivyDeps =
     T {
       val libs: Agg[Dep] = deps.prjScalaVersion match {
-        case PrjScalaVersion.Scala_2_13_7 => Agg(ivy"$silencerLib")
-        case _                            => Agg.empty[Dep]
+        case PrjScalaVersion.Scala_2_13 => Agg(ivy"$silencerLib")
+        case _                          => Agg.empty[Dep]
       }
       super.ivyDeps() ++ libs ++ Agg(deps.zio)
     }
@@ -273,8 +273,8 @@ object zio extends Module {
   class ZIOInsight(crossScalaVersion: String) extends Module {
     val prjScalaVersion = PrjScalaVersion(crossScalaVersion)
     val prjDeps         = prjScalaVersion match {
-      case PrjScalaVersion.Scala_2_13_7 => Deps_213
-      case PrjScalaVersion.Scala_3_1_0  => Deps_31
+      case PrjScalaVersion.Scala_2_13  => Deps_213
+      case PrjScalaVersion.Scala_3_1_0 => Deps_31
     }
 
     object server extends ZIOModule {
