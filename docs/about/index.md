@@ -3,6 +3,10 @@ id: about_index
 title:  "About ZIO Insight"
 ---
 
-TODO: Tagline
+## A framework for inspecting and visualizing information in ZIO applications 
 
-TODO: Long description (paragraph)
+# ZIO Insight frontend 
+
+# ZIO Insight server
+
+# ZIO Insight Instrumentation plugins
