@@ -4,19 +4,27 @@ import npm_run.NpmRunModule
 
 import $file.build_utils
 import build_utils.BuildUtils
+
 // Add simple docusaurus2 support for mill
 import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.docusaurus2::0.0.3`
 import de.wayofquality.mill.docusaurus2.Docusaurus2Module
+
 // Add simple mdoc support for mill
 import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.mdoc::0.0.4`
 import de.wayofquality.mill.mdoc.MDocModule
 
+// A project specific module defining the target Scala versions and managing the
+// Scala version specific compiler settings and dependencies
 import $file.cross
 import cross.Cross._
 
+// General settings for all ZIOM Modules
 import $file.zio_module
 import zio_module.ZIOModule
 
+// A module to build a webapp taking a ScalaJS mainline and tailwind definition sources
+// to package the entire app into a deployable directory that could be served from any 
+// Web Server
 import $file.tailwind_module
 import tailwind_module.TailwindModule
 // format: on
@@ -33,16 +41,19 @@ import os.Path
 
 object zio extends Module {
 
+  // This is the checkout directory, will be passed to most modules for path calculations
   val projectDir = build.millSourcePath
 
+  // Build the site with Docusaurus 2 and Mdoc
   object site extends Docusaurus2Module with MDocModule {
     override def scalaVersion      = T(PrjScalaVersion.default.version)
+    // MD Sources that must be compiled with Scala MDoc
     override def mdocSources       = T.sources(projectDir / "docs")
+    // MD Sources that are just plain MD files
     override def docusaurusSources = T.sources(projectDir / "website")
 
     override def watchedMDocsDestination: T[Option[Path]] = T(Some(docusaurusBuild().path / "docs"))
-
-    override def compiledMdocs: Sources = T.sources(mdoc().path)
+    override def compiledMdocs: Sources                   = T.sources(mdoc().path)
   }
 
   object insight                              extends Cross[ZIOInsight](PrjScalaVersion.default.version)
@@ -61,6 +72,7 @@ object zio extends Module {
 
       override def ivyDeps = T(super.ivyDeps() ++ Agg(deps.zioHttp))
 
+      // Just a convenient way to start the Insight server via mill
       def start() = T.command {
 
         val baseDir = webapp.js.pkgServer().path.toIO.getAbsolutePath
@@ -79,6 +91,7 @@ object zio extends Module {
 
     object ui extends Module {
 
+      // Reusable components
       object components extends ZIOModule {
         override val projectRoot = projectDir
         override val deps        = prjDeps
@@ -95,9 +108,9 @@ object zio extends Module {
           }
         }
       }
-
     }
 
+    // The Insight SPA
     object webapp extends ZIOModule {
       override val projectRoot = projectDir
       override val deps        = prjDeps
