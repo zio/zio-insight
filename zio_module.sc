@@ -16,7 +16,7 @@ import mill.scalalib._
 import mill.scalalib.scalafmt.ScalafmtModule
 import os.Path
 
-trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule with PublishModule { outer =>
+trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { outer =>
   def projectRoot: Path
   def deps: Deps
 
