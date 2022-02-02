@@ -1,10 +1,13 @@
 import com.goyeau.mill.scalafix.ScalafixModule
 
+import $file.build_utils
+import $file.npm_run
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
 // Add simple docusaurus2 support for mill
 import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.docusaurus2::0.0.3`
 // Add simple mdoc support for mill
 import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.mdoc::0.0.4`
+import build_utils.BuildUtils
 import de.wayofquality.mill.docusaurus2.Docusaurus2Module
 import de.wayofquality.mill.mdoc.MDocModule
 import mill._
@@ -15,10 +18,11 @@ import mill.scalajslib.ScalaJSModule
 import mill.scalalib._
 // Scalafix and Scala Format
 import mill.scalalib.scalafmt.ScalafmtModule
+import npm_run.NpmRunModule
 import os.Path
 
 // It's convenient to keep the base project directory around
-val projectDir = build.millSourcePath
+val projectRoot = build.millSourcePath
 
 lazy val isProd =
   sys.env.getOrElse("PROD", "false").equalsIgnoreCase("true")
@@ -42,35 +46,6 @@ object PrjScalaVersion       {
 
   val default = Scala_3_1_0
   val all     = Seq(Scala_2_13, Scala_3_1_0)
-}
-
-object BuildUtils {
-
-  def copySources(from: Seq[Path], to: Path) =
-    from.foreach { path =>
-      os.walk(path).foreach { file =>
-        val relPath    = file.relativeTo(path)
-        val dest: Path = to / relPath
-
-        os.copy
-          .over(file, dest, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
-      }
-    }
-
-  def cloneDirectory(from: Path, to: Path) = {
-    os.list(to).foreach(os.remove.all)
-    os.list(from).foreach { p =>
-      os.copy.into(
-        p,
-        to,
-        followLinks = true,
-        replaceExisting = true,
-        copyAttributes = true,
-        createFolders = true,
-        mergeFolders = false
-      )
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------------------------------------------
@@ -104,6 +79,13 @@ object Deps_31 extends Deps {
   override def prjScalaVersion: PrjScalaVersion = PrjScalaVersion.Scala_3_1_0
 }
 
+trait MyModule extends Module {
+  def crossVersion: String
+  implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
+    def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(crossVersion))
+  }
+}
+
 trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { outer =>
   def deps: Deps
 
@@ -116,7 +98,7 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
 
   def moduleName = millModuleSegments.parts.filterNot(_.equals(deps.prjScalaVersion.version)).mkString("-")
 
-  override def millSourcePath = projectDir / moduleName
+  override def millSourcePath = projectRoot / moduleName
 
   override def artifactName: T[String] = T(moduleName)
 
@@ -212,9 +194,6 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
 
     override def ivyDeps = outer.ivyDeps
 
-    // This is required to make web components developed with Scala.JS work
-    override def useECMAScript2015 = T(true)
-
     trait Tests extends outer.Tests with ScalaJSModule {
       override def scalaJSVersion: Target[String] = outerJS.scalaJSVersion
 
@@ -228,40 +207,13 @@ trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { oute
   }
 } /* end ZIOModule */
 
-trait NpmRunModule extends Module {
-
-  def npmSources = T.sources(millSourcePath / "npm")
-
-  protected def runAndWait(cmd: Seq[String], envArgs: Map[String, String], dir: Path) = {
-    val proc = Jvm.spawnSubprocess(cmd, envArgs.updated("PROJECT_DIR", projectDir.toIO.getAbsolutePath), dir)
-    proc.join()
-  }
-
-  def npmInstall = T {
-    val dest = T.dest
-
-    npmSources().foreach { pr =>
-      val srcDir = pr.path
-      os.walk(srcDir).foreach { p =>
-        val relPath = p.relativeTo(srcDir)
-        val target  = dest / relPath
-        os.copy.over(p, target, followLinks = true, replaceExisting = true, copyAttributes = true, createFolders = true)
-      }
-    }
-
-    runAndWait(Seq("yarn", "install", "--check-files"), Map.empty, dest)
-
-    PathRef(dest)
-  }
-} /* End NpmRunModule */
-
 object zio extends Module {
 
   object site extends Docusaurus2Module with MDocModule {
     override def scalaVersion      = T(PrjScalaVersion.default.version)
-    override def mdocSources       = T.sources(projectDir / "docs")
+    override def mdocSources       = T.sources(projectRoot / "docs")
     override def docusaurusSources = T.sources(
-      projectDir / "website"
+      projectRoot / "website"
     )
 
     override def watchedMDocsDestination: T[Option[Path]] = T(Some(docusaurusBuild().path / "docs"))
@@ -300,12 +252,35 @@ object zio extends Module {
       object test extends super.Tests()
     }
 
+    object ui extends Module {
+
+      object components extends ZIOModule {
+        override val deps = prjDeps
+
+        override def scalaVersion = T(crossScalaVersion)
+
+        object js extends super.JSModule {
+          override def ivyDeps = T {
+            super.ivyDeps() ++ Agg(
+              deps.scalaJsDom,
+              deps.laminar,
+              deps.airstream
+            )
+          }
+        }
+      }
+
+    }
+
     object webapp extends ZIOModule {
       override val deps = prjDeps
 
       override def scalaVersion = T(crossScalaVersion)
 
       object js extends super.JSModule with NpmRunModule {
+
+        override val projectDir = projectRoot
+
         def tailwindSources = T.sources(millSourcePath / "tailwind")
 
         override def ivyDeps = T(
@@ -315,6 +290,8 @@ object zio extends Module {
             deps.airstream
           )
         )
+
+        override def moduleDeps = super.moduleDeps ++ Seq(zio.insight(crossScalaVersion).ui.components.js)
 
         def pkgServer = {
           val bundleJS =

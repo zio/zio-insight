@@ -73,14 +73,14 @@ object MyParagraph:
 
 end MyParagraph
 
-object HelloWorld:
-  def main(args: Array[String]) =
+// object HelloWorld:
+//   def main(args: Array[String]) =
 
-    val _ = documentEvents.onDomContentLoaded.foreach { _ =>
-      CustomElementsRegistry.customElements.define("my-paragraph", js.constructorOf[ParagraphElement])
-      val appContainer = dom.document.getElementById("app")
-      appContainer.innerHTML = ""
-      val _            = render(appContainer, MainView.render)
-    }(unsafeWindowOwner)
+//     val _ = documentEvents.onDomContentLoaded.foreach { _ =>
+//       CustomElementsRegistry.customElements.define("my-paragraph", js.constructorOf[ParagraphElement])
+//       val appContainer = dom.document.getElementById("app")
+//       appContainer.innerHTML = ""
+//       val _            = render(appContainer, MainView.render)
+//     }(unsafeWindowOwner)
 
-end HelloWorld
+// end HelloWorld
