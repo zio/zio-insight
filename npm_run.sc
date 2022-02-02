@@ -4,12 +4,12 @@ import os.Path
 
 trait NpmRunModule extends Module {
 
-  val projectDir: Path
+  def projectRoot: Path
 
   def npmSources = T.sources(millSourcePath / "npm")
 
   protected def runAndWait(cmd: Seq[String], envArgs: Map[String, String], dir: Path) = {
-    val proc = Jvm.spawnSubprocess(cmd, envArgs.updated("PROJECT_DIR", projectDir.toIO.getAbsolutePath), dir)
+    val proc = Jvm.spawnSubprocess(cmd, envArgs.updated("PROJECT_DIR", projectRoot.toIO.getAbsolutePath), dir)
     proc.join()
   }
 

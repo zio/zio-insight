@@ -1,15 +1,26 @@
-import com.goyeau.mill.scalafix.ScalafixModule
+// format: off
+import $file.npm_run
+import npm_run.NpmRunModule
 
 import $file.build_utils
-import $file.npm_run
-import $ivy.`com.goyeau::mill-scalafix::0.2.8`
+import build_utils.BuildUtils
 // Add simple docusaurus2 support for mill
 import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.docusaurus2::0.0.3`
+import de.wayofquality.mill.docusaurus2.Docusaurus2Module
 // Add simple mdoc support for mill
 import $ivy.`de.wayofquality.blended::de.wayofquality.blended.mill.mdoc::0.0.4`
-import build_utils.BuildUtils
-import de.wayofquality.mill.docusaurus2.Docusaurus2Module
 import de.wayofquality.mill.mdoc.MDocModule
+
+import $file.cross
+import cross.Cross._
+
+import $file.zio_module
+import zio_module.ZIOModule
+
+import $file.tailwind_module
+import tailwind_module.TailwindModule
+// format: on
+
 import mill._
 import mill.define.Sources
 import mill.define.Target
@@ -18,203 +29,16 @@ import mill.scalajslib.ScalaJSModule
 import mill.scalalib._
 // Scalafix and Scala Format
 import mill.scalalib.scalafmt.ScalafmtModule
-import npm_run.NpmRunModule
 import os.Path
-
-// It's convenient to keep the base project directory around
-val projectRoot = build.millSourcePath
-
-lazy val isProd =
-  sys.env.getOrElse("PROD", "false").equalsIgnoreCase("true")
-
-sealed trait PrjKind { val kind: String }
-object PrjKind       {
-  case object JvmProject extends PrjKind { val kind = "jvm" }
-  case object JsProject  extends PrjKind { val kind = "js"  }
-}
-
-sealed trait PrjScalaVersion { val version: String }
-object PrjScalaVersion       {
-  case object Scala_2_13  extends PrjScalaVersion { val version = "2.13.8" }
-  case object Scala_3_1_0 extends PrjScalaVersion { val version = "3.1.0"  }
-
-  def apply(v: String): PrjScalaVersion = v match {
-    case Scala_2_13.version  => Scala_2_13
-    case Scala_3_1_0.version => Scala_3_1_0
-    case v                   => throw new Exception(s"Unknown Scala version <$v>")
-  }
-
-  val default = Scala_3_1_0
-  val all     = Seq(Scala_2_13, Scala_3_1_0)
-}
-
-/* ----------------------------------------------------------------------------------------------------------
- * Dependency management
- * ---------------------------------------------------------------------------------------------------------- */
-trait Deps {
-  def prjScalaVersion: PrjScalaVersion
-  val scalaVersion = prjScalaVersion.version
-
-  val laminarVersion = "0.14.2"
-  val scalaJSVersion = "1.8.0"
-  val zioVersion     = "2.0.0-RC1"
-
-  val airstream = ivy"com.raquo::airstream::$laminarVersion"
-  val laminar   = ivy"com.raquo::laminar::$laminarVersion"
-
-  val scalaJsDom = ivy"org.scala-js::scalajs-dom::2.1.0"
-
-  val zioHttp = ivy"io.d11::zhttp:2.0.0-RC1"
-
-  val zio        = ivy"dev.zio::zio::$zioVersion"
-  val zioTest    = ivy"dev.zio::zio-test::$zioVersion"
-  val zioTestSbt = ivy"dev.zio::zio-test-sbt::$zioVersion"
-}
-
-object Deps_213 extends Deps {
-  override def prjScalaVersion: PrjScalaVersion = PrjScalaVersion.Scala_2_13
-}
-
-object Deps_31 extends Deps {
-  override def prjScalaVersion: PrjScalaVersion = PrjScalaVersion.Scala_3_1_0
-}
-
-trait MyModule extends Module {
-  def crossVersion: String
-  implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
-    def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(crossVersion))
-  }
-}
-
-trait ZIOModule extends SbtModule with ScalafmtModule with ScalafixModule { outer =>
-  def deps: Deps
-
-  def scalafixScalaBinaryVersion = T {
-    deps.prjScalaVersion match {
-      case PrjScalaVersion.Scala_2_13  => "2.13"
-      case PrjScalaVersion.Scala_3_1_0 => "3"
-    }
-  }
-
-  def moduleName = millModuleSegments.parts.filterNot(_.equals(deps.prjScalaVersion.version)).mkString("-")
-
-  override def millSourcePath = projectRoot / moduleName
-
-  override def artifactName: T[String] = T(moduleName)
-
-  def extraSources: Seq[String] = deps.prjScalaVersion match {
-    case PrjScalaVersion.Scala_2_13  => Seq("2.13")
-    case PrjScalaVersion.Scala_3_1_0 => Seq("3.x")
-  }
-
-  def createSourcePaths(prjKind: PrjKind, scope: String, extra: Seq[String]): Seq[PathRef] =
-    (Seq("scala") ++ extra.map(e => s"scala-$e")).flatMap(ep =>
-      Seq(
-        PathRef(millSourcePath / prjKind.kind / "src" / scope / ep),
-        PathRef(millSourcePath / "shared" / "src" / scope / ep)
-      )
-    )
-
-  override def sources: Sources = T.sources(createSourcePaths(PrjKind.JvmProject, "main", extraSources))
-
-  private val silencerVersion  = "1.7.7"
-  private lazy val silencerLib = s"com.github.ghik:::silencer-lib:$silencerVersion"
-
-  override def scalacOptions = T {
-
-    val fatalWarnings: Seq[String] =
-      if (sys.env.contains("CI")) {
-        Seq("-Werror")
-      } else {
-        Seq.empty
-      }
-
-    val stdOptions: Seq[String] = Seq(
-      "-deprecation",
-      "-encoding",
-      "UTF-8"
-    ) ++ fatalWarnings
-
-    deps.prjScalaVersion match {
-      case PrjScalaVersion.Scala_2_13  =>
-        stdOptions ++
-          Seq(
-            "-feature",
-            "-language:higherKinds",
-            "-language:existentials",
-            "-unchecked",
-            "-Ywarn-unused",
-            "-Wunused:imports",
-            "-Wunused:patvars",
-            "-Wunused:privates",
-            "-Wvalue-discard",
-            "-Xsource:3"
-          )
-      case PrjScalaVersion.Scala_3_1_0 =>
-        stdOptions
-    }
-  }
-
-  override def scalacPluginIvyDeps =
-    T {
-      val libs: Agg[Dep] = deps.prjScalaVersion match {
-        case PrjScalaVersion.Scala_2_13 => Agg(ivy"$silencerLib")
-        case _                          => Agg.empty[Dep]
-      }
-      super.scalacPluginIvyDeps() ++ libs
-    }
-
-  override def ivyDeps =
-    T {
-      val libs: Agg[Dep] = deps.prjScalaVersion match {
-        case PrjScalaVersion.Scala_2_13 => Agg(ivy"$silencerLib")
-        case _                          => Agg.empty[Dep]
-      }
-      super.ivyDeps() ++ libs ++ Agg(deps.zio)
-    }
-
-  trait Tests extends super.Tests with ScalafmtModule with ScalafixModule {
-    override def scalaVersion               = outer.scalaVersion
-    override def scalafixScalaBinaryVersion = outer.scalafixScalaBinaryVersion
-
-    override def testFramework: T[String] = T("zio.test.sbt.ZTestFramework")
-
-    override def ivyDeps = T(outer.ivyDeps() ++ Agg(deps.zioTest, deps.zioTestSbt))
-
-    override def sources: Sources = T.sources(outer.createSourcePaths(PrjKind.JvmProject, "test", outer.extraSources))
-  }
-
-  trait JSModule extends SbtModule with ScalafmtModule with ScalafixModule with ScalaJSModule { outerJS =>
-
-    override def scalaVersion: T[String] = outer.scalaVersion
-
-    override def scalaJSVersion: T[String] = T(outer.deps.scalaJSVersion)
-
-    override def sources: Sources = T.sources(outer.createSourcePaths(PrjKind.JsProject, "main", outer.extraSources))
-
-    override def ivyDeps = outer.ivyDeps
-
-    trait Tests extends outer.Tests with ScalaJSModule {
-      override def scalaJSVersion: Target[String] = outerJS.scalaJSVersion
-
-      override def testFramework: T[String] = T("zio.test.sbt.ZTestFramework")
-
-      override def sources: Sources = T.sources(outer.createSourcePaths(PrjKind.JsProject, "test", outer.extraSources))
-
-      override def ivyDeps = T(outerJS.ivyDeps() ++ Agg(deps.zioTest, deps.zioTestSbt))
-    }
-
-  }
-} /* end ZIOModule */
 
 object zio extends Module {
 
+  val projectDir = build.millSourcePath
+
   object site extends Docusaurus2Module with MDocModule {
     override def scalaVersion      = T(PrjScalaVersion.default.version)
-    override def mdocSources       = T.sources(projectRoot / "docs")
-    override def docusaurusSources = T.sources(
-      projectRoot / "website"
-    )
+    override def mdocSources       = T.sources(projectDir / "docs")
+    override def docusaurusSources = T.sources(projectDir / "website")
 
     override def watchedMDocsDestination: T[Option[Path]] = T(Some(docusaurusBuild().path / "docs"))
 
@@ -230,7 +54,8 @@ object zio extends Module {
     }
 
     object server extends ZIOModule {
-      override val deps = prjDeps
+      override val projectRoot = projectDir
+      override val deps        = prjDeps
 
       override def scalaVersion = T(crossScalaVersion)
 
@@ -255,7 +80,8 @@ object zio extends Module {
     object ui extends Module {
 
       object components extends ZIOModule {
-        override val deps = prjDeps
+        override val projectRoot = projectDir
+        override val deps        = prjDeps
 
         override def scalaVersion = T(crossScalaVersion)
 
@@ -273,15 +99,13 @@ object zio extends Module {
     }
 
     object webapp extends ZIOModule {
-      override val deps = prjDeps
+      override val projectRoot = projectDir
+      override val deps        = prjDeps
 
       override def scalaVersion = T(crossScalaVersion)
 
-      object js extends super.JSModule with NpmRunModule {
-
-        override val projectDir = projectRoot
-
-        def tailwindSources = T.sources(millSourcePath / "tailwind")
+      object js extends super.JSModule with TailwindModule {
+        override val projectRoot = projectDir
 
         override def ivyDeps = T(
           super.ivyDeps() ++ Agg(
@@ -293,62 +117,14 @@ object zio extends Module {
 
         override def moduleDeps = super.moduleDeps ++ Seq(zio.insight(crossScalaVersion).ui.components.js)
 
-        def pkgServer = {
-          val bundleJS =
-            if (isProd) T.task {
-              rollupJS().path
-            }
-            else
-              T.task {
-                fastOpt().path
-              }
-
-          T {
-            val dir = T.dest
-
-            BuildUtils.copySources(resources().map(_.path), dir)
-            os.copy.over(bundleJS(), dir / "insight.js")
-
-            os.copy.into(tailwind().path, dir)
-
-            PathRef(dir)
-          }
-        }
-
-        def rollupJS = T {
-          def dir = T.dest
-
-          val fileRef =
-            s"""const file = '${fullOpt().path.toIO.getAbsolutePath}'
-               |module.exports = file""".stripMargin
-
-          BuildUtils.cloneDirectory(npmInstall().path, dir)
-          os.write.over(dir / "jsfile.js", fileRef.getBytes())
-          runAndWait(Seq("yarn", "install", "--force"), Map.empty, dir)
-          runAndWait(Seq("npx", "rollup", "-c"), Map.empty, dir)
-
-          PathRef(dir)
-        }
-
-        def tailwind = T {
-          val dir = T.dest
-
-          BuildUtils.cloneDirectory(npmInstall().path, dir)
-          runAndWait(Seq("yarn", "install", "--force"), Map.empty, dir)
-          BuildUtils.copySources(tailwindSources().map(_.path), dir)
-          runAndWait(Seq("npx", "tailwindcss", "-i", "./input.css", "-o", "insight.css"), Map.empty, dir)
-
-          PathRef(dir / "insight.css")
-        }
-
         object test extends super.Tests {}
 
       }
     }
 
     object core extends ZIOModule {
-
-      override val deps = prjDeps
+      override val projectRoot = projectDir
+      override val deps        = prjDeps
 
       override def scalaVersion = T(crossScalaVersion)
 
