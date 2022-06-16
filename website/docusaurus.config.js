@@ -29,6 +29,7 @@ module.exports = {
             items: [
                 { to: 'overview/', label: 'Overview', position: 'right' },
                 { to: 'usecases/', label: 'Use Cases', position: 'right' },
+                { to: 'development/', label: 'Development', position: 'right' },
                 { to: 'about/', label: 'About', position: 'right' }
             ],
         },
@@ -39,7 +40,7 @@ module.exports = {
                     items: [
                         {
                             html: `
-                <img src="/img/navbar_brand.png" alt="zio" />
+                <img src="/zio-insight/img/navbar_brand.png" alt="zio" />
             `
                         }
                     ],
