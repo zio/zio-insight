@@ -682,10 +682,10 @@ d3-shape@^3.1.0:
   resolved "https://registry.yarnpkg.com/d3-timer/-/d3-timer-3.0.1.tgz#6284d2a2708285b1abb7e201eda4380af35e63b0"
   integrity sha512-ndfJ/JxxMd3nw31uyKoY2naivF+r29V+Lc0svZxe1JvvIRmi8hUsrMvdOwgS1o6uBHmiz91geQ0ylPP0aj1VUA==
 
-daisyui@2.13.4:
-  version "2.13.4"
-  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-2.13.4.tgz#e641a2cf99029f3cd2263b778e65583361953fad"
-  integrity sha512-seLNXMqOV0C2VigLi2OSmVm7LOr+ZcbnHW5f1byjWNhCc0DU8eX/Xc+aqPOynRnofAZ8igciKq6qmAYunewPAQ==
+daisyui@2.15.4:
+  version "2.15.4"
+  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-2.15.4.tgz#775822bef77b6bb81f36b1bbb1909a52f0464987"
+  integrity sha512-bHO/ETG+N6i722jO6xup6AYh0KgigirOYIfY35lJzVDd85h6CXEWj//DhcF2HFVCF2N/zdh+lhK/mPc95v7Sig==
   dependencies:
     color "^4.2"
     css-selector-tokenizer "^0.8.0"
