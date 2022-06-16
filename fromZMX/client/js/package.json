@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "vega": "5.22.1",
-    "vega-embed": "6.20.8",
+    "vega-embed": "6.21.0",
     "vega-lite": "5.2.0"
   }
 }
