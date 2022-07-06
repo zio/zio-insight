@@ -35,3 +35,5 @@ website/i18n/en.json
 website/yarn.lock
 website/static/api
 .bsp/
+
+node_modules
