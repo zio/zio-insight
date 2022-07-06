@@ -1,5 +1,4 @@
 import BuildHelper._
-import Version._
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 
