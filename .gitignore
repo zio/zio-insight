@@ -39,3 +39,4 @@ website/static/api
 
 .vite
 node_modules
+dist

@@ -32,7 +32,7 @@ export default ({ mode }) => {
     },
     {
       from: "file:/home/runner/work/zio/zio",
-      to: "https://raw.githubusercontent.com/zio/zio/v1.0.9",
+      to: "https://raw.githubusercontent.com/zio/zio/v2.0.0",
     },
     // We have to remap the client sources, so that the vite root directory does not collide with any of the
     // directories containing the Scala sources, otherwise vite cant serve the dev page
