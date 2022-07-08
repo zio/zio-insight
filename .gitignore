@@ -23,6 +23,7 @@ project/project/
 *.iml
 .vscode/
 out/
+mill.edScNI
 
 # if you are here to add your IDE's files please read this instead:
 # https://stackoverflow.com/questions/7335420/global-git-ignore#22885996
@@ -35,3 +36,7 @@ website/i18n/en.json
 website/yarn.lock
 website/static/api
 .bsp/
+
+.vite
+node_modules
+dist
