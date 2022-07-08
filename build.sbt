@@ -30,8 +30,7 @@ lazy val insights =
       crossScalaVersions := Seq(Version.Scala213, Version.ScalaDotty),
       stdSettings("zio.insights"),
       libraryDependencies ++= Seq(
-        "dev.zio"   %%% "zio"       % Version.zio,
-        "io.suzaku" %%% "boopickle" % Version.boopickle
+        "dev.zio" %%% "zio" % Version.zio
       )
     )
     .jsSettings(

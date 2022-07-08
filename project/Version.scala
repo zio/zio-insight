@@ -6,10 +6,7 @@ object Version {
 
   val zio     = "2.0.0"
   val zioJson = "0.3.0-RC9"
-  val zioHttp = "2.0.0-RC9"
 
-  val animus              = "0.1.9"
-  val boopickle           = "1.4.0"
   val fansi               = "0.2.14"
   val laminar             = "0.14.2"
   val laminext            = "0.14.3"
