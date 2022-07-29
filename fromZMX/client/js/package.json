@@ -8,7 +8,7 @@
     "@tailwindcss/aspect-ratio": "0.4.0",
     "@tailwindcss/forms": "0.5.2",
     "@tailwindcss/typography": "0.5.4",
-    "autoprefixer": "10.4.7",
+    "autoprefixer": "10.4.8",
     "daisyui": "2.20.0",
     "postcss": "8.4.14",
     "rollup-plugin-node-resolve": "5.2.0",
