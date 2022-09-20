@@ -52,7 +52,7 @@ else
   MILL_DOWNLOAD_PATH="${HOME}/.cache/mill/download"
 fi
 
-# If not already set, try to fetch newest from Github
+# If not already set, try to fetch newest from GitHub
 if [ "x${MILL_VERSION}" = "x" ] ; then
   # TODO: try to load latest version from release page
   echo "No mill version specified." 1>&2
