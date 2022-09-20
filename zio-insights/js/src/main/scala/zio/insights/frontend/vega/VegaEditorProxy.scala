@@ -11,7 +11,7 @@ import scalajs.js
 class VegaEditorProxy(cfg: PanelConfig.DisplayConfig, vegaSpec: String) {
 
   private val url                 = "https://vega.github.io/editor/"
-  // Prettyfy the Vega JSON with indentation 2
+  // Prettify the Vega JSON with indentation 2
   private val step                = 250d
   private val count               = new AtomicInteger(40)
   private var handle: Option[Int] = None
