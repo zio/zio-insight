@@ -69,7 +69,7 @@ is the base directory for all Node JS related tasks.
 For now we are using `uzhttp` on the server side to realize the Web Socket protocol required by the client. 
 This is a temporary solution until ZIO HTTP is available for ZIO 2. 
 
-At the moment, uzhttp has no official release for ZIO 2 either, so as a preparational step, you have 
+At the moment, uzhttp has no official release for ZIO 2 either, so as a preparatory step, you have 
 to checkout the ZIO 2 version from https://github.com/blended-zio/uzhttp/tree/zio2 and use sbt to publish 
 uzhttp for ZIO 2 locally. 
 
