@@ -10,7 +10,7 @@
     "@tailwindcss/typography": "0.5.7",
     "autoprefixer": "10.4.12",
     "daisyui": "2.31.0",
-    "postcss": "8.4.17",
+    "postcss": "8.4.18",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "sass": "1.55.0",
