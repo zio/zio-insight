@@ -1,5 +1,5 @@
 ---
-id: development_index
+id: developer-notes
 title: "Developer Notes"
 ---
 

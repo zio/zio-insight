@@ -1,6 +1,6 @@
 ---
-id: about_index
-title:  "About ZIO Insight"
+id: index
+title: "Introduction to ZIO Insight"
 ---
 
 ## A framework for inspecting and visualizing information in ZIO applications 
