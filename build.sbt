@@ -63,5 +63,4 @@ lazy val docs = project
     moduleName     := "zio-insight-docs",
     libraryDependencies ++= Seq("dev.zio" %% "zio" % Version.zio)
   )
-  .dependsOn(zioFlowJVM)
   .enablePlugins(WebsitePlugin)
