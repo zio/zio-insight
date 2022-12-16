@@ -53,7 +53,7 @@ object InstrumentedSample {
       .zipPar(Random.nextIntBetween(100, 500) @@ aspSummary @@ aspCountAll)
       .unit
 
-  // Observe Strings in order to capture uinque values
+  // Observe Strings in order to capture unique values
   private lazy val observeKey = Random.nextIntBetween(10, 20).map(v => s"myKey-$v") @@ aspFrequency @@ aspCountAll
 
   def program = for {

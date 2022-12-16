@@ -23,7 +23,7 @@ export default ({ mode }) => {
 
   const sourcePathMappings = [
     // The first settings correct sourcemaps that have accidentally been published with incorrect code references
-    // and remaps those to vaild githup raw urls.
+    // and remaps those to valid github raw urls.
     // It seems that changes to these mappings require a build rather than running just the vite server
     { from: "https:/raw", to: "https://raw" },
     {

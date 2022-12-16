@@ -52,7 +52,7 @@ else
   MILL_DOWNLOAD_PATH="${HOME}/.cache/mill/download"
 fi
 
-# If not already set, try to fetch newest from Github
+# If not already set, try to fetch newest from GitHub
 if [ "x${MILL_VERSION}" = "x" ] ; then
   # TODO: try to load latest version from release page
   echo "No mill version specified." 1>&2
@@ -60,7 +60,7 @@ if [ "x${MILL_VERSION}" = "x" ] ; then
 
   mkdir -p "${MILL_DOWNLOAD_PATH}"
   LANG=C touch -d '1 hour ago' "${MILL_DOWNLOAD_PATH}/.expire_latest" 2>/dev/null || (
-    # we might be on OSX or BSD which don't have -d option for touch
+    # we might be on macOS or BSD which don't have -d option for touch
     # but probably a -A [-][[hh]mm]SS
     touch "${MILL_DOWNLOAD_PATH}/.expire_latest"; touch -A -010000 "${MILL_DOWNLOAD_PATH}/.expire_latest"
   ) || (

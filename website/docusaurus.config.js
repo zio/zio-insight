@@ -46,7 +46,7 @@ module.exports = {
                     ],
                 },
                 {
-                    title: 'Github',
+                    title: 'GitHub',
                     items: [
                         {
                             html: `

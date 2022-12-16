@@ -18,7 +18,7 @@ final case class TimeSeriesKey(
  * A time series key uniquely identifies a single line within a diagram view.
  * For Counters and Gauges it can be directly derived from the MetricKey, for
  * the compound metrics it also requires a sub key to identify the bucket, the
- * quantile or the the set element.
+ * quantile or the set element.
  */
 final case class TimeSeriesEntry private (
   key: TimeSeriesKey,
