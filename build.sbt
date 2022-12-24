@@ -59,8 +59,16 @@ lazy val insightsJs = insights.js
 lazy val docs = project
   .in(file("zio-insight-docs"))
   .settings(
-    publish / skip := true,
-    moduleName     := "zio-insight-docs",
-    libraryDependencies ++= Seq("dev.zio" %% "zio" % Version.zio)
+    publish / skip    := true,
+    moduleName        := "zio-insight-docs",
+    libraryDependencies ++= Seq("dev.zio" %% "zio" % Version.zio),
+    projectName       := "ZIO Insight",
+    badgeInfo         := Some(
+      BadgeInfo(
+        artifact = "zio-insight_2.12",
+        projectStage = ProjectStage.Development
+      )
+    ),
+    docsPublishBranch := "main"
   )
   .enablePlugins(WebsitePlugin)
