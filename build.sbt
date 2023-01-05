@@ -7,7 +7,7 @@ inThisBuild(
     organization := "dev.zio",
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
     scmInfo      := Some(
-      ScmInfo(url("https://github.com/zio/zio.insight/"), "scm:git:git@github.com:zio/zio.insight.git")
+      ScmInfo(url("https://github.com/zio/zio-insight/"), "scm:git:git@github.com:zio/zio-insight.git")
     )
   )
 )
@@ -17,7 +17,7 @@ addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck"
 
 lazy val root =
   (project in file("."))
-    .aggregate(insightsJs)
+    .aggregate(insightsJs, docs)
     .settings(
       publish / skip := true
     )
@@ -55,3 +55,20 @@ lazy val insights =
     .enablePlugins(BuildInfoPlugin)
 
 lazy val insightsJs = insights.js
+
+lazy val docs = project
+  .in(file("zio-insight-docs"))
+  .settings(
+    publish / skip    := true,
+    moduleName        := "zio-insight-docs",
+    libraryDependencies ++= Seq("dev.zio" %% "zio" % Version.zio),
+    projectName       := "ZIO Insight",
+    badgeInfo         := Some(
+      BadgeInfo(
+        artifact = "zio-insight_2.12",
+        projectStage = ProjectStage.Development
+      )
+    ),
+    docsPublishBranch := "main"
+  )
+  .enablePlugins(WebsitePlugin)

@@ -8,3 +8,6 @@ addSbtPlugin("com.geirsson"       % "sbt-ci-release"           % "1.5.7")
 addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % "1.8.0")
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.1.0")
 addSbtPlugin("io.spray"           % "sbt-revolver"             % "0.9.1")
+addSbtPlugin("dev.zio"            % "zio-sbt-website"          % "0.1.5+28-4b5b0374-SNAPSHOT")
+
+resolvers += Resolver.sonatypeRepo("public")
