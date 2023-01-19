@@ -48,14 +48,14 @@ of the panel to invoke either the config dialog or the editor for the vega speci
 
 The config dialog allows to change the selected metrics for the dashboard, the collection interval and the number of samples kept for the graphs.
 
-[Simple Vega Editor](/zio-zmx/img/jsclient-vegaedit.png)
+[//]: # ([Simple Vega Editor]&#40;/zio-zmx/img/jsclient-vegaedit.png&#41;)
 
 The vega edit dialog just offers a text panel to edit the Vega Lite specification. By clicking `Edit in Vega`
 the specification will be opened in the Vega Lite editor, which allows to edit the specification interactively
 and validate to resulting graph. Once the editing is done, the spec can be copied back into the ZMX client and
 the dashboard will use the edited specification to render the graph.
 
-[Vega Lite Editor](/zio-zmx/img/vegalite-edit.png)
+[//]: # ([Vega Lite Editor]&#40;/zio-zmx/img/vegalite-edit.png&#41;)
 
 ## Working on the ZMX client
 
