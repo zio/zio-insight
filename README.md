@@ -41,7 +41,7 @@ The configuration dialog displays the currently selected metrics for the panel a
 for selection. A metric can be added to the panel only once, so once it is selected it will be removed from the
 metrics available for selection. Any number of metrics can be added to the selection. Once a metric is selected it can be removed from the selection by clicking on the label in the `Configured Metrics`section.
 
-[Configure Metrics](/zio-zmx/img/jsclient-config.png)
+[//]: # ([Configure Metrics]&#40;/zio-zmx/img/jsclient-config.png&#41;)
 
 Once the selection is confirmed, the panel dashboard will show the metrics graph using a [Vega Lite](https://vega.github.io/vega-lite/) specification. At any point, the user can use the buttons located at the top right
 of the panel to invoke either the config dialog or the editor for the vega specification.
