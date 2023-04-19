@@ -6,102 +6,106 @@
 
 [![Development](https://img.shields.io/badge/Project%20Stage-Development-green.svg)](https://github.com/zio/zio/wiki/Project-Stages) ![CI Badge](https://github.com/zio/zio-insight/workflows/CI/badge.svg) [![Sonatype Snapshots](https://img.shields.io/nexus/s/https/oss.sonatype.org/dev.zio/zio-insights_2.13.svg?label=Sonatype%20Snapshot)](https://oss.sonatype.org/content/repositories/snapshots/dev/zio/zio-insights_2.13/) [![ZIO Insight](https://img.shields.io/github/stars/zio/zio-insight?style=social)](https://github.com/zio/zio-insight)
 
-Even though the normal use case for ZMX is to use one of supported metric back ends, the ZMX team has decided
-to provide a simplified client using ScalaJS, so users can explore metrics capturing and visual presentation
-without having to install the pre-requisites for one of the back ends.
+# An Introduction to ZIO Insight
 
-> The ScalaJS client is not designed as a replacement for one of the dashboard implementations offering a
-> much larger feature set. It is designed to quickly visualize ZMX metrics.
+**A Comprehensive Tool for Monitoring and Visualizing ZIO Applications**
 
-## ZMX client technology stack
+## Introduction
 
-### Server side
+As Scala developers continue to explore the vast possibilities of the ZIO ecosystem, the need for efficient and comprehensive monitoring tools becomes increasingly important. With this in mind, we are thrilled to introduce ZIO Insight, a new open-source project that offers a powerful and intuitive solution for monitoring and visualizing ZIO applications.
 
-The ZMX code base now provides a `MetricNotifier` that can be mixed into an instrumented ZIO 2 application.
-The MetricNotifier manages subscriptions to metrics and provides a stream of updates. Clients can use the
-notifier API to subscribe metrics and receive updates at regular intervals. With this API only the metrics
-that have subscriptions are evaluated at the points in time when the data is needed. Overall this reduces
-the monitoring overhead significantly.
+ZIO Insight comprises a server and a client component. The server component is a library that can be easily integrated into your ZIO application, while the client component is a standalone application that can be run locally or deployed to a server.
 
-### Client side
+The server component collects and exposes metrics and fiber traces through a REST API, while the client component renders this information in a user-friendly manner via charts and navigable trees.
 
-The Scala JS client uses the `MetricNotifier` API to implement a WebSocket protocol between the client and the
-monitored application.
+## ZIO Insight goals and non-goals
 
-The client is built on top of [Laminar](https://laminar.dev/), so the stream of inbound messages is turned into
-a airstream, which is tightly integrated into Laminar.
+ZIO Insight aims to be a lightweight and easy-to-use tool for monitoring and visualizing ZIO applications. It is not designed to serve as a comprehensive monitoring solution, but rather as a supplementary tool for developers seeking to gain a deeper understanding of their ZIO application's performance.
 
-We have built a simple framework to create metrics dashboard. The dashboard always uses the entire client space
-within the browser and starts with an empty dashboard panel. The user can use the `Split Horizontally` and
-`Split Vertically` buttons to change the dashboard layout.
+As such, its primary use cases are during development and testing phases.
 
-An empty panel can be configured by clicking on the `+` button in the middle of the panel.
+We will provide modules with ZIO-specific content and strive to minimize overlap with other tools such as Grafana or DataDog.
 
-The configuration dialog displays the currently selected metrics for the panel and offers all known metrics
-for selection. A metric can be added to the panel only once, so once it is selected it will be removed from the
-metrics available for selection. Any number of metrics can be added to the selection. Once a metric is selected it can be removed from the selection by clicking on the label in the `Configured Metrics`section.
+## ZIO Insight module overview
 
-[//]: # ([Configure Metrics]&#40;/zio-zmx/img/jsclient-config.png&#41;)
+As it is still in its early stage, ZIO Insight's direction and scope may evolve over time. We welcome your feedback and suggestions.
 
-Once the selection is confirmed, the panel dashboard will show the metrics graph using a [Vega Lite](https://vega.github.io/vega-lite/) specification. At any point, the user can use the buttons located at the top right
-of the panel to invoke either the config dialog or the editor for the vega specification.
+At the moment ZIO Insight will have the following modules:
 
-The config dialog allows to change the selected metrics for the dashboard, the collection interval and the number of samples kept for the graphs.
+- **Metrics capturing and visualization**. ZIO Insight originated as a simple metrics client for ZIO applications, enabling users to quickly view collected metrics without the need for an additional setup.
 
-[//]: # ([Simple Vega Editor]&#40;/zio-zmx/img/jsclient-vegaedit.png&#41;)
+  The first release of this module is already available.
 
-The vega edit dialog just offers a text panel to edit the Vega Lite specification. By clicking `Edit in Vega`
-the specification will be opened in the Vega Lite editor, which allows to edit the specification interactively
-and validate to resulting graph. Once the editing is done, the spec can be copied back into the ZMX client and
-the dashboard will use the edited specification to render the graph.
+![Metrics Dashboard](img/Metrics.png)
 
-[//]: # ([Vega Lite Editor]&#40;/zio-zmx/img/vegalite-edit.png&#41;)
+- **Fiber tracing and visualization**. ZIO Insight offer a means to visualize fiber traces, enabling users to observe how fibers are being scheduled, executed and how they relate to each other in a tree-like structure.
 
-## Working on the ZMX client
+  This module is available as a preview with limited search and navigation capacities. The next step is to test the existing functionality in real life applications to refine the API.
 
-To work on the client, besides `sbt` `node` has to be installed on the development machine. The directory `client/js`
-is the base directory for all Node JS related tasks.
+![Fiber Tracing](img/FiberTraces.png)
 
-### Prepare the environment
+- **Service Dependency visualization**. ZIO 2 already provides support to render service dependencies in a graph at compile time. ZIO Insight will provide these dependencies at runtime and a way to visualize this graph in the browser.
 
-1. At first, run `yarn install` within `client/js`.
-1. Build the tailwind based CSS with `npx tailwind -i src/main/index.css -o ./target/rollup/main.css`
+  This module is not yet available.
 
-### Build and run the instrumented server / client
+- **Profiling support**. ZIO 2 already provides support for casual profiling of ZIO applications. We aim to support this functionality in ZIO Insight by allowing the developer to specify code locations that should be subject to casual profiling. A server module should collect the profiling data, while the client module should visualize it.
 
-For now we are using `uzhttp` on the server side to realize the Web Socket protocol required by the client.
-This is a temporary solution until ZIO HTTP is available for ZIO 2.
+  This module is not yet available.
 
-At the moment, uzhttp has no official release for ZIO 2 either, so as a preparational step, you have
-to checkout the ZIO 2 version from https://github.com/blended-zio/uzhttp/tree/zio2 and use sbt to publish
-uzhttp for ZIO 2 locally.
+# Trying it out
 
-1. Start the instrumented Server with with web socket server from the ZMX checkout directory with `sbt clientJVM/run`
-1. In another shell start a continuous compile of the Scala JS client code by starting a sbt shell and execute `~clientJS/fastOptJS`. This will recompile the Scala JS code upon each save of a related source file.
-1. In yet another shell, from within `client/js` start `npx vite build -m development --watch`. This will repackage
-   the web application upon on each change.
-1. In yet another shell, from within `client/js` start `npx vite`. This will start a local HTTP server on port
-   3000 picking up the currently packaged application. `http://localhost:3000` will now display the client.
+To try ZIO Insight yourself you will need to chack out the code from GitHub for both the server and the client.
 
-   In case you want to use a browser on a different machine than the machine where you have started the vite
-   server, you have to start the vite server with `npx vite --host 0.0.0.0`, so that the vite server starts to
-   listen on all network interfaces.
+The server has a sample application in its test folder that creates some metrics and also collects fiber information using a supervisor. This is a good entry point to start exploring ZIO Insight.
 
-### Ideas for further development (non-exhaustive)
+**NOTE**: ZIO Insight is under heavy development and the main branches may be unstable at times. For ZIO World we have released a preview version 0.0.1 for both the server and the client. It is recommended to use these versions for exploration unless you want to start hacking on new features.
 
-1. It might make sense to change the diagram type, for example a bar chart or pie chart might make sense for sets. Here we might simply maintain a curated list of useful Vega lite Specs.
-1. Ideally, the configuration for each diagram could be captured in a JSON serializable case class, so that we could
-   store the state of all diagrams currently displayed within the web page to JSON. We could have a dialog where we
-   could simply display the current JSON to copy it into a file and another dialog to paste a JSON config for setting
-   the diagram state. Potentially we could use local browser storage for storing and retrieving JSON. 
+## Pre-requisites
 
-## A framework for inspecting and visualizing information in ZIO applications 
+1. To execute the server locally you need to have Java and sbt installed. You can find instructions on how to install them [here](https://www.scala-sbt.org/1.x/docs/Setup.html).
 
-# ZIO Insight frontend 
+1. To execute the client locally you need to have Node.js and Yarn installed. You can find instructions on how to install them [here](https://yarnpkg.com/getting-started/install).
 
-# ZIO Insight server
+## Running the server with a sample application
 
-# ZIO Insight Instrumentation plugins
+1. Clone the repository and checkout the ´v0.0.1' tag.
+
+   ```bash
+   git clone -b v0.0.1 https://github.com/zio/zio-insight-server.git
+   ```
+
+1. Navigate to the `zio-insight-server` folder and run the following command to start the server.
+
+   ```bash
+   sbt "core/Test/runMain sample.SampleApp"
+   ```
+
+1. This will bring up the server with the embedded HTTP Server listening on port 8080. The insight API is available within this server.
+
+## Running the client locally
+
+1. Clone the repository and checkout the ´v0.0.1' tag.
+
+   ```bash
+   git clone -b v0.0.1 https://github.com/zio/zio-insight-ui.git
+   ```
+
+1. Navigate to the `zio-insight-ui` folder and run the following command to start the client.
+
+   ```bash
+   yarn install
+   yarn dev
+   ```
+
+1. This will bring up a node development server listening on port 5173. You can access the client by navigating to http://localhost:5173.
+
+The terminal below shows the output of running the server and the client locally.
+
+![Running the server and the client locally](img/Running.png)
+
+# Please contribute!
+
+If you find ZIO Insight helpful or have any suggestions, feel free to contribute or raise an issue on our GitHub repository. Happy coding!
 
 ## Documentation
 
