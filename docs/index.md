@@ -36,13 +36,13 @@ At the moment ZIO Insight will have the following modules:
 
   The first release of this module is already available.
 
-![Metrics Dashboard](../img/Metrics.png)
+![Metrics Dashboard](img/Metrics.png)
 
 - **Fiber tracing and visualization**. ZIO Insight offer a means to visualize fiber traces, enabling users to observe how fibers are being scheduled, executed and how they relate to each other in a tree-like structure.
 
   This module is available as a preview with limited search and navigation capacities. The next step is to test the existing functionality in real life applications to refine the API.
 
-![Fiber Tracing](../img/FiberTraces.png)
+![Fiber Tracing](img/FiberTraces.png)
 
 - **Service Dependency visualization**. ZIO 2 already provides support to render service dependencies in a graph at compile time. ZIO Insight will provide these dependencies at runtime and a way to visualize this graph in the browser.
 
@@ -101,7 +101,7 @@ The server has a sample application in its test folder that creates some metrics
 
 The terminal below shows the output of running the server and the client locally.
 
-![Running the server and the client locally](../img/Running.png)
+![Running the server and the client locally](img/Running.png)
 
 # Please contribute!
 
